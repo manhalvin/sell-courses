@@ -27,6 +27,7 @@ Route::prefix('auth/')->name('auth.')->group(function () {
         // Route::get('register/activate/{uuid}', 'verifyAccount')->name('register_activate');
         Route::post('otp/verification/{user_id}', 'verifyWithOtp')->name('otp.verification');
         Route::post('login', 'login')->name('login');
+        Route::put('change-password', 'changePassword')->name('change_password')->middleware('auth:sanctum');
     });
 
 });

@@ -1,14 +1,14 @@
 <?php
 namespace App\Services\API;
 
-use Carbon\Carbon;
-use Laravolt\Avatar\Avatar;
-use App\Mail\API\RegisterMail;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Mail;
-use App\Interfaces\API\Services\AuthServiceInterface;
 use App\Interfaces\API\Repositories\UserRepositoryInterface;
 use App\Interfaces\API\Repositories\VerificationCodeRepositoryInterface;
+use App\Interfaces\API\Services\AuthServiceInterface;
+use App\Mail\API\RegisterMail;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
+use Laravolt\Avatar\Avatar;
 
 class AuthService extends BaseService implements AuthServiceInterface
 {
@@ -62,7 +62,7 @@ class AuthService extends BaseService implements AuthServiceInterface
             return [
                 'uuid' => $inputData['uuid'],
                 'otp' => $verificationCode->otp,
-                'user_id' => $userId
+                'user_id' => $userId,
             ];
         }
 
@@ -79,7 +79,7 @@ class AuthService extends BaseService implements AuthServiceInterface
         # User Does not Have Any Existing OTP
         $verificationCode = $this->verificationCodeRepository->getVerificationCodeByUserId($user->id);
 
-        $now =  Carbon::now('Asia/Ho_Chi_Minh');
+        $now = Carbon::now('Asia/Ho_Chi_Minh');
 
         if ($verificationCode && $now->isBefore($verificationCode->expire_at)) {
             return $verificationCode;
@@ -147,13 +147,13 @@ class AuthService extends BaseService implements AuthServiceInterface
         $now = Carbon::now("Asia/Ho_Chi_Minh");
         if (!$verificationCode) {
             $this->sendError("Sorry ! Your OTP is not correct");
-        }elseif($verificationCode && $now->isAfter($verificationCode->expire_at)){
+        } elseif ($verificationCode && $now->isAfter($verificationCode->expire_at)) {
             $this->sendError("Sorry ! Your OTP has been expired");
         }
 
         $user = $this->userRepository->whereId($userId);
 
-        if(!$user){
+        if (!$user) {
             // Expire The OTP
             $this->sendError("Sorry ! Your OTP is not correct");
         }
@@ -192,6 +192,19 @@ class AuthService extends BaseService implements AuthServiceInterface
             'token' => $user->createToken('token')->plainTextToken,
         ];
         return $success;
+    }
+
+    public function handleChangePassword($passwordOld, $passwordNew, $password, $uuid)
+    {
+        if (!password_verify($passwordOld, $password)) {
+            $this->sendError('Password old does not matched with database password');
+        }
+
+        $result = $this->userRepository->updatePassword($passwordNew, $uuid);
+        if (!$result) {
+            $this->sendError('Error ! Update password fail !');
+        }
+        return $result;
     }
 
 }

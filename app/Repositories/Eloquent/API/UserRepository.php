@@ -110,6 +110,18 @@ class UserRepository implements UserRepositoryInterface
         return $this->user->whereId($userId)->first();
     }
 
+    /**
+     * Thay đổi mật khẩu qua uuid của user
+     * @param mixed $passwordNew
+     * @param mixed $uuid
+     * @return mixed
+     */
+    public function updatePassword($passwordNew, $uuid)
+    {
+        return $this->user->where('uuid', $uuid)
+            ->update(['password' => $passwordNew]);
+    }
+
     public function updateUser($userId, UpdateUserRequest $updateUserRequest)
     {
         $user = $this->user->find($userId);

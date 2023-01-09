@@ -2,13 +2,15 @@
 
 namespace App\Http\Controllers\API;
 
-use Carbon\Carbon;
 use App\Http\Controllers\API\BaseController;
-
+use App\Http\Requests\API\Auth\ChangePasswordRequest;
 use App\Http\Requests\API\Auth\LoginRequest;
-use App\Http\Requests\API\VerifyCodeRequest;
 use App\Http\Requests\API\Auth\RegisterRequest;
+use App\Http\Requests\API\VerifyCodeRequest;
 use App\Interfaces\API\Services\AuthServiceInterface;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 
 class AuthController extends BaseController
 {
@@ -61,7 +63,7 @@ class AuthController extends BaseController
     {
         try {
             $this->authService->handleVerifyAccount($uuid);
-            return $this->sendResponse([],'Account verification successful !');
+            return $this->sendResponse([], 'Account verification successful !');
         } catch (\Exception$e) {
             return $this->sendError($e->getMessage(), null);
         }
@@ -79,7 +81,7 @@ class AuthController extends BaseController
         $userId = $request->user_id;
         try {
             $this->authService->handleVerifyWithOtp($userId, $otp);
-            return $this->sendResponse([],'Verification OTP successful !');
+            return $this->sendResponse([], 'Verification OTP successful !');
         } catch (\Exception$e) {
             return $this->sendError($e->getMessage(), null);
         }
@@ -99,6 +101,26 @@ class AuthController extends BaseController
         try {
             $result = $this->authService->handleLogin($password, $userData);
             return $this->sendResponse($result, 'Login successful !');
+        } catch (\Exception$e) {
+            return $this->sendError($e->getMessage(), null);
+        }
+    }
+
+    /**
+     * Chức năng: Thay đổi mật khẩu
+     * @param ChangePasswordRequest $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function changePassword(ChangePasswordRequest $request)
+    {
+        $passwordOld = $request->input('password_old');
+        $passwordNew = Hash::make($request->input('password_new'));
+        $password = Auth::user()->password;
+        $uuid = Auth::user()->uuid;
+
+        try {
+            $this->authService->handleChangePassword($passwordOld, $passwordNew, $password, $uuid);
+            return $this->sendResponse([], 'Change password success');
         } catch (\Exception$e) {
             return $this->sendError($e->getMessage(), null);
         }
