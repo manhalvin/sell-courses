@@ -162,4 +162,36 @@ class AuthService extends BaseService implements AuthServiceInterface
         return $result;
 
     }
+
+    public function verifyEmail($email)
+    {
+        $userData = $this->userRepository->getUserByEmail($email);
+        if (!$userData) {
+            $this->sendError("Sorry ! Unauthorize !");
+        }
+        return $userData;
+    }
+
+    public function handleLogin($password, $userData)
+    {
+        $data = [
+            'email' => $userData->email,
+            'password' => $password,
+        ];
+
+        if (!Auth::attempt($data)) {
+            $this->sendError("Sorry ! Unauthorize !");
+        }
+
+        if ($userData->status == 0) {
+            $this->sendError("Please activate your account ! Contact admin !");
+        }
+
+        $user = Auth::user();
+        $success = [
+            'token' => $user->createToken('token')->plainTextToken,
+        ];
+        return $success;
+    }
+
 }

@@ -74,7 +74,6 @@ class UserRepository implements UserRepositoryInterface
         return $result;
     }
 
-
     /**
      * Cập nhật trạng thái người dùng qua uuid
      * @param string $uuid

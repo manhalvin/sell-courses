@@ -10,4 +10,8 @@ interface AuthServiceInterface
 
     public function handleVerifyWithOtp($userId, $otp);
 
+    public function verifyEmail($email);
+
+    public function handleLogin($password, $userData);
+
 }

@@ -2,10 +2,11 @@
 
 namespace App\Http\Controllers\API;
 
-use App\Http\Requests\API\VerifyCodeRequest;
 use Carbon\Carbon;
-
 use App\Http\Controllers\API\BaseController;
+
+use App\Http\Requests\API\Auth\LoginRequest;
+use App\Http\Requests\API\VerifyCodeRequest;
 use App\Http\Requests\API\Auth\RegisterRequest;
 use App\Interfaces\API\Services\AuthServiceInterface;
 
@@ -79,6 +80,25 @@ class AuthController extends BaseController
         try {
             $this->authService->handleVerifyWithOtp($userId, $otp);
             return $this->sendResponse([],'Verification OTP successful !');
+        } catch (\Exception$e) {
+            return $this->sendError($e->getMessage(), null);
+        }
+    }
+
+    public function login(LoginRequest $request)
+    {
+        $email = $request->input('email');
+        $password = $request->input('password');
+
+        try {
+            $userData = $this->authService->verifyEmail($email);
+        } catch (\Exception$e) {
+            return $this->sendError($e->getMessage(), null);
+        }
+
+        try {
+            $result = $this->authService->handleLogin($password, $userData);
+            return $this->sendResponse($result, 'Login successful !');
         } catch (\Exception$e) {
             return $this->sendError($e->getMessage(), null);
         }
