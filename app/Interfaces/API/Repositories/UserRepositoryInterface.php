@@ -16,6 +16,8 @@ interface UserRepositoryInterface
     public function getUserByEmail($email);
     public function createUser($userData);
     public function whereId($userId);
+
+    public function updatePassword($passwordNew, $uuid);
     // public function updateUser($userId, UpdateUserRequest $updateUserRequest);
     // public function deleteUser($userId);
 }
