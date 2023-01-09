@@ -2,15 +2,18 @@
 
 namespace App\Http\Controllers\API;
 
-use App\Http\Controllers\API\BaseController;
-use App\Http\Requests\API\Auth\ChangePasswordRequest;
-use App\Http\Requests\API\Auth\LoginRequest;
-use App\Http\Requests\API\Auth\RegisterRequest;
-use App\Http\Requests\API\VerifyCodeRequest;
-use App\Interfaces\API\Services\AuthServiceInterface;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Session;
+use App\Http\Controllers\API\BaseController;
+use App\Http\Requests\API\Auth\LoginRequest;
+use App\Http\Requests\API\VerifyCodeRequest;
+use App\Http\Requests\API\Auth\RegisterRequest;
+use App\Http\Requests\API\Auth\ChangePasswordRequest;
+use App\Http\Requests\API\Auth\ForgotPasswordRequest;
+use App\Interfaces\API\Services\AuthServiceInterface;
+use App\Http\Requests\API\Auth\ForgotPasswordWithOtpRequest;
 
 class AuthController extends BaseController
 {
@@ -125,4 +128,49 @@ class AuthController extends BaseController
             return $this->sendError($e->getMessage(), null);
         }
     }
+
+    /**
+     * Chức năng quên mật khẩu
+     * @param ForgotPasswordRequest $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function forgotPassword(ForgotPasswordRequest $request)
+    {
+        $inputData = $request->all();
+        $inputData['uuid'] = md5(str_shuffle('abcdefghijklmnopqrstuvwxyz' . time()));
+
+        try {
+            $result = $this->authService->handleForgotPassword($inputData);
+            return $this->sendResponse($result, 'Success ! You have a new OTP in your email ! ');
+        } catch (\Exception$e) {
+            return $this->sendError($e->getMessage(), null);
+        }
+    }
+
+    /**
+     * Chức năng nhập OTP + nhập password mới
+     * dùng trong chức năng quên mật khẩu
+     * @param ForgotPasswordWithOtpRequest $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+
+    public function forgotPasswordWithOtp(ForgotPasswordWithOtpRequest $request)
+    {
+        $inputData = $request->all();
+
+        try {
+            $this->authService->handleForgotPasswordWithOtp($inputData);
+            return $this->sendResponse([], 'Success ! Update password success ');
+        } catch (\Exception$e) {
+            return $this->sendError($e->getMessage(), null);
+        }
+    }
+
+    public function logout()
+    {
+        Auth::logout();
+        Session::forget('_token');
+        return $this->sendResponse([], 'Success ! Logout success ');
+    }
+
 }

@@ -16,4 +16,8 @@ interface AuthServiceInterface
 
     public function handleChangePassword($passwordOld, $passwordNew, $password, $uuid);
 
+    public function handleForgotPassword($inputData);
+
+    public function handleForgotPasswordWithOtp($inputData);
+
 }
