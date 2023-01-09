@@ -24,8 +24,9 @@ Route::prefix('auth/')->name('auth.')->group(function () {
 
     Route::controller(AuthController::class)->group(function () {
         Route::post('register', 'register')->name('register');
-        Route::get('register/activate/{uuid}', 'verifyAccount')->name('register_activate');
+        // Route::get('register/activate/{uuid}', 'verifyAccount')->name('register_activate');
         Route::post('otp/verification/{user_id}', 'verifyWithOtp')->name('otp.verification');
+        Route::post('login', 'login')->name('login');
     });
 
 });
