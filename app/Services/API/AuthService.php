@@ -1,14 +1,16 @@
 <?php
 namespace App\Services\API;
 
+use Carbon\Carbon;
+use Laravolt\Avatar\Avatar;
+use App\Mail\API\RegisterMail;
+use App\Mail\API\ForgotPasswordMail;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
+use App\Interfaces\API\Services\AuthServiceInterface;
 use App\Interfaces\API\Repositories\UserRepositoryInterface;
 use App\Interfaces\API\Repositories\VerificationCodeRepositoryInterface;
-use App\Interfaces\API\Services\AuthServiceInterface;
-use App\Mail\API\RegisterMail;
-use Carbon\Carbon;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Mail;
-use Laravolt\Avatar\Avatar;
 
 class AuthService extends BaseService implements AuthServiceInterface
 {
@@ -163,6 +165,11 @@ class AuthService extends BaseService implements AuthServiceInterface
 
     }
 
+    /**
+     * Xác thực email của người dùng
+     * @param mixed $email
+     * @return mixed
+     */
     public function verifyEmail($email)
     {
         $userData = $this->userRepository->getUserByEmail($email);
@@ -172,6 +179,12 @@ class AuthService extends BaseService implements AuthServiceInterface
         return $userData;
     }
 
+    /**
+     * Xử lý chức năng login
+     * @param mixed $password
+     * @param mixed $userData
+     * @return array<string>
+     */
     public function handleLogin($password, $userData)
     {
         $data = [
@@ -194,6 +207,14 @@ class AuthService extends BaseService implements AuthServiceInterface
         return $success;
     }
 
+    /**
+     * Xử lý chức năng thay đổi mật khẩu
+     * @param mixed $passwordOld
+     * @param mixed $passwordNew
+     * @param mixed $password
+     * @param mixed $uuid
+     * @return mixed
+     */
     public function handleChangePassword($passwordOld, $passwordNew, $password, $uuid)
     {
         if (!password_verify($passwordOld, $password)) {
@@ -201,6 +222,63 @@ class AuthService extends BaseService implements AuthServiceInterface
         }
 
         $result = $this->userRepository->updatePassword($passwordNew, $uuid);
+        if (!$result) {
+            $this->sendError('Error ! Update password fail !');
+        }
+        return $result;
+    }
+
+    /**
+     * Xử lý chức năng quên mật khẩu
+     * @param mixed $inputData
+     * @return array
+     */
+    public function handleForgotPassword($inputData)
+    {
+        $user = $this->userRepository->getUserByEmail($inputData['email']);
+        if (!$user) {
+            $this->sendError('Error ! Email not exist !');
+        }
+
+        # Tạo mã OTP
+        $verificationCode = $this->generateOtp($inputData['email']);
+        $data = [
+            'name' => $user->username,
+            'message' => "Your OTP : " . $verificationCode->otp,
+        ];
+
+        Mail::to($inputData['email'])->send(new ForgotPasswordMail($data));
+        return [
+            'otp' => $verificationCode->otp,
+            'user_id' => $user->id,
+        ];
+    }
+
+    /**
+     * Xử lý Chức năng nhập OTP + nhập password mới
+     * dùng trong chức năng quên mật khẩu
+     * @param mixed $inputData
+     * @return mixed
+     */
+    public function handleForgotPasswordWithOtp($inputData)
+    {
+        $verificationCode =  $this->verificationCodeRepository
+            ->checkOtpExist($inputData['user_id'], $inputData['otp']);
+
+        $now = Carbon::now();
+        if (!$verificationCode) {
+            $this->sendError('Error ! OTP is not correct !');
+        } elseif ($verificationCode && $now->isAfter($verificationCode->expire_at)) {
+            $this->sendError('Error ! OTP has been expired !');
+        }
+
+        $user = $this->userRepository->whereId($inputData['user_id']);
+        if (!$user) {
+            $this->sendError('"Error ! No find User !');
+        }
+
+        $password = Hash::make($inputData['password']);
+        $result = $this->userRepository->updatePassword($password, $user->uuid);
         if (!$result) {
             $this->sendError('Error ! Update password fail !');
         }

@@ -28,6 +28,11 @@ Route::prefix('auth/')->name('auth.')->group(function () {
         Route::post('otp/verification/{user_id}', 'verifyWithOtp')->name('otp.verification');
         Route::post('login', 'login')->name('login');
         Route::put('change-password', 'changePassword')->name('change_password')->middleware('auth:sanctum');
+        Route::put('forgot-password', 'forgotPassword')->name('forgot_password');
+        Route::prefix('otp/')->name('otp.')->group(function () {
+            Route::put('forgot-password', 'forgotPasswordWithOtp')->name('forgot_password');
+        });
+        Route::delete('logout', 'logout')->name('logout');
     });
 
 });
