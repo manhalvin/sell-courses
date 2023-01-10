@@ -1,12 +1,13 @@
 <?php
 
+use App\Http\Controllers\API\AuthController;
+use App\Http\Controllers\API\CategoryCourseController;
+use App\Http\Controllers\API\CourseController;
+use App\Http\Controllers\API\PostController;
+use App\Http\Controllers\API\UserController;
+use App\Http\Controllers\API\VideoCourseController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\API\AuthController;
-use App\Http\Controllers\API\UserController;
-use App\Http\Controllers\API\CourseController;
-use App\Http\Controllers\API\VideoCourseController;
-use App\Http\Controllers\API\CategoryCourseController;
 
 /*
 |--------------------------------------------------------------------------
@@ -97,5 +98,25 @@ Route::prefix('admin/')->middleware('auth:sanctum')->group(function () {
             Route::post('video/{id}', 'update')->name('update');
             Route::delete('video/{id}', 'destroy')->name('destroy');
         });
+    });
+
+    // Route admin: posts
+    Route::controller(PostController::class)->group(function () {
+        Route::prefix('posts/')->name('posts.')->group(function () {
+            Route::get('', 'index')->name('index');
+        });
+        Route::prefix('post/')->name('post.')->group(function () {
+            Route::post('', 'store')->name('store');
+            Route::get('{id}', 'show')->name('show');
+            Route::post('action', 'action')->name('action');
+            Route::put('{id}', 'update')->name('update');
+            Route::delete('{id}', 'destroy')->name('destroy');
+
+            Route::prefix('images/')->name('images.')->group(function () {
+                Route::post('{post_id}', 'uploadImage')->name('upload_images');
+                Route::delete('{post_id}', 'deleteAllImage')->name('delete_all_image');
+            });
+        });
+
     });
 });
