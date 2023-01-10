@@ -18,6 +18,12 @@ interface UserRepositoryInterface
     public function whereId($userId);
 
     public function updatePassword($passwordNew, $uuid);
+
+    public function getUserList($status, $filters = [], $search = null, $sortArr = null, $perPage = null);
+    public function updateUser($data, $id);
+    public function userDestroy($listCheck);
+    public function userRestoreTrashed($listCheck);
+    public function userForceDelete($listCheck);
     // public function updateUser($userId, UpdateUserRequest $updateUserRequest);
     // public function deleteUser($userId);
 }

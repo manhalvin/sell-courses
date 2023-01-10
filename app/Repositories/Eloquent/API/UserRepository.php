@@ -1,7 +1,6 @@
 <?php
 namespace App\Repositories\Eloquent\API;
 
-use App\Http\Requests\API\UpdateUserRequest;
 use App\Interfaces\API\Repositories\UserRepositoryInterface;
 use App\Models\User;
 
@@ -122,16 +121,75 @@ class UserRepository implements UserRepositoryInterface
             ->update(['password' => $passwordNew]);
     }
 
-    public function updateUser($userId, UpdateUserRequest $updateUserRequest)
+    public function getUserList($status, $filters = [], $search = null, $sortArr = null, $perPage = null)
     {
-        $user = $this->user->find($userId);
-        if ($user) {
-            $user->update($updateUserRequest->toArray());
+        $users = $this->user
+        ->select('users.*', 'roles.name as role_name')
+        ->join('roles', 'users.role_id', '=', 'roles.id');
+
+        $orderBy = 'users.created_at';
+        $orderType = 'desc';
+
+        if (!empty($sortArr) && is_array($sortArr)) {
+            if (!empty($sortArr['sortBy']) && !empty($sortArr['sortType'])) {
+                $orderBy = trim($sortArr['sortBy']);
+                $orderType = trim($sortArr['sortType']);
+            }
         }
+
+        if (!empty($filters)) {
+            $users = $users->where($filters);
+            // $users->whereNotNull('users.deleted_at');
+        }
+
+        if (!empty($search)) {
+            $users = $users->where(function ($query) use ($search) {
+                $query->orWhere('users.email', 'like', "%{$search}%")
+                    ->orWhere('users.username', 'like', "%{$search}%");
+            });
+        }
+
+        return !empty($perPage)
+        ? $users->orderBy($orderBy, $orderType)->paginate($perPage)
+        : $users->orderBy($orderBy, $orderType)->get();
+
     }
 
-    public function deleteUser($userId)
+    public function updateUser($data, $user)
     {
-        $this->user->destroy($userId);
+        return $user = $this->user->find($user)
+            ->update($data);
     }
+
+    /**
+     * Xóa tạm thời user vào db
+     * @param mixed $user
+     * @return mixed
+     */
+    public function deleteUser($user)
+    {
+        return $user = $this->user->find($user)
+            ->delete();
+    }
+
+    public function userDestroy($listCheck)
+    {
+        return $this->user->destroy($listCheck);
+    }
+
+    public function userRestoreTrashed($listCheck)
+    {
+        return $this->user->withTrashed()->whereIn('id', $listCheck)->restore();
+    }
+
+    /**
+     *  Xóa vĩnh viễn user
+     * @param mixed $listCheck
+     * @return mixed
+     */
+    public function userForceDelete($listCheck)
+    {
+        return $this->user->withTrashed()->whereIn('id', $listCheck)->forceDelete();
+    }
+
 }
