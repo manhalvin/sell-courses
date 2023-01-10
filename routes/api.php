@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\UserController;
+use App\Http\Controllers\API\CategoryCourseController;
 
 /*
 |--------------------------------------------------------------------------
@@ -38,9 +39,23 @@ Route::prefix('auth/')->name('auth.')->group(function () {
 
 });
 
-Route::prefix('/')->middleware('auth:sanctum')->group(function () {
+Route::prefix('admin/')->middleware('auth:sanctum')->group(function () {
 
-    // Route: User
+    // Route admin: category courses
+    Route::controller(CategoryCourseController::class)->group(function () {
+        Route::prefix('category/courses')->name('category.courses.')->group(function () {
+            Route::get('/', 'index')->name('index');
+        });
+        Route::prefix('category/course')->name('category.course')->group(function () {
+            Route::post('/', 'store')->name('store');
+            Route::get('{id}', 'show')->name('show');
+            Route::post('action', 'action')->name('action');
+            Route::post('{id}', 'update')->name('update');
+            Route::delete('{id}', 'destroy')->name('destroy');
+        });
+    });
+
+    // Route admin: users
     Route::controller(UserController::class)->group(function () {
         Route::prefix('users/')->name('users.')->group(function () {
             Route::get('', 'index')->name('index');
