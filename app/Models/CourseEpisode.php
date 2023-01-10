@@ -10,5 +10,13 @@ class CourseEpisode extends Model
 {
     use HasFactory;
     use SoftDeletes;
-    protected $guarded = [];
+    protected $guarded = ['video'];
+    // protected $fillable = ['title','content',''];
+
+    protected $table = 'course_episodes';
+
+    public function course()
+    {
+        return $this->belongsTo(Course::class);
+    }
 }
