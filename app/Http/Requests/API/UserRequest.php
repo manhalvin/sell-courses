@@ -3,6 +3,8 @@
 namespace App\Http\Requests\API;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Contracts\Validation\Validator;
+use Illuminate\Http\Exceptions\HttpResponseException;
 
 class UserRequest extends FormRequest
 {
@@ -13,7 +15,7 @@ class UserRequest extends FormRequest
      */
     public function authorize()
     {
-        return false;
+        return true;
     }
 
     /**
@@ -24,7 +26,22 @@ class UserRequest extends FormRequest
     public function rules()
     {
         return [
-            //
+            'name' => 'required|unique:users,name',
+            'username' => 'required|unique:users,username',
+            'email' => 'required|email|unique:users,email',
+            'thumbnail' => 'image|mimes:jpg,png,jpeg,gif,svg|max:2048',
+            'status' => 'required|integer|between:0,1',
+            'password' => 'required|min:6|max:10',
+            // 'role_id' => 'required|integer'
         ];
+    }
+
+    public function failedValidation(Validator $validator)
+    {
+        throw new HttpResponseException(response()->json([
+            'success'   => false,
+            'message'   => 'Validate Failed !',
+            'data'      => $validator->errors()
+        ]));
     }
 }
