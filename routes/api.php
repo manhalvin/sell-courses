@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\UserController;
 use App\Http\Controllers\API\CategoryCourseController;
+use App\Http\Controllers\API\CourseController;
 
 /*
 |--------------------------------------------------------------------------
@@ -61,6 +62,20 @@ Route::prefix('admin/')->middleware('auth:sanctum')->group(function () {
             Route::get('', 'index')->name('index');
         });
         Route::prefix('user/')->name('user.')->group(function () {
+            Route::post('', 'store')->name('store');
+            Route::get('{id}', 'show')->name('show');
+            Route::post('action', 'action')->name('action');
+            Route::put('{id}', 'update')->name('update');
+            Route::delete('{id}', 'destroy')->name('destroy');
+        });
+    });
+
+    // Route admin: course
+    Route::controller(CourseController::class)->group(function () {
+        Route::prefix('courses/')->name('courses.')->group(function () {
+            Route::get('', 'index')->name('index');
+        });
+        Route::prefix('course/')->name('course.')->group(function () {
             Route::post('', 'store')->name('store');
             Route::get('{id}', 'show')->name('show');
             Route::post('action', 'action')->name('action');

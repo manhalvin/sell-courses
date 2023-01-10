@@ -1,26 +1,29 @@
 <?php
 namespace App\Repositories\Eloquent\API;
 
-use App\Models\CategoryCourse;
+use App\Models\Course;
 use Illuminate\Support\Facades\Auth;
 
-class CategoryCourseRepository
+class CourseRepository
 {
     protected $model;
 
     public function __construct()
     {
-        $this->model = new CategoryCourse;
+        $this->model = new Course;
     }
 
-    public function createCategoryCourse($data)
+    public function createCourse($data)
     {
-        $this->model->name = $data['name'];
+        $this->model->title = $data['title'];
+        $this->model->content = $data['content'];
         $this->model->slug = $data['slug'];
-        $this->model->parent_id = $data['parent_id'];
         if ($data['thumbnail']) {
             $this->model->thumbnail = $data['thumbnail'];
         }
+        $this->model->price = $data['price'];
+        $this->model->category_course_id = $data['category_course_id'];
+        $this->model->user_created = Auth::user()->name;
         $this->model->status = $data['status'];
         $this->model->save();
         return $this->model->fresh();
@@ -30,7 +33,7 @@ class CategoryCourseRepository
     {
         $query = $this->model->select('*');
 
-        if ($status == 'trash') {
+        if($status == 'trash'){
             $query->onlyTrashed()->latest();
         }
 
@@ -88,7 +91,7 @@ class CategoryCourseRepository
     public function deleteData($id)
     {
         $this->model->find($id)->update([
-            'user_deleted' => Auth::user()->name,
+            'user_deleted' => Auth::user()->name
         ]);
         return $this->model->find($id)
             ->delete();
@@ -96,10 +99,9 @@ class CategoryCourseRepository
 
     public function destroyData($listCheck)
     {
-        $this->model->WhereId($listCheck)
-            ->update([
-                'user_deleted' => Auth::user()->name,
-            ]);
+        $this->model->WhereIn('id', $listCheck)->update([
+            'user_deleted' => Auth::user()->name
+        ]);
         return $this->model->destroy($listCheck);
     }
 
@@ -116,14 +118,14 @@ class CategoryCourseRepository
     public function approveRecord($listCheck)
     {
         return $this->model->whereIn('id', $listCheck)->update([
-            'status' => 1,
+            'status' => 1
         ]);
     }
 
     public function incognitoRecord($listCheck)
     {
         return $this->model->whereIn('id', $listCheck)->update([
-            'status' => 0,
+            'status' => 0
         ]);
     }
 
