@@ -2,20 +2,20 @@
 
 namespace App\Http\Controllers\API;
 
-use App\Http\Controllers\API\BaseController;
-use App\Http\Requests\API\CategoryCourse\CategoryCourseRequest;
-use App\Http\Requests\API\CategoryCourse\UpdateCategoryCourseRequest;
-use App\Http\Resources\API\CategoryCourseResource;
-use App\Services\API\CategoryCourseService;
 use Illuminate\Http\Request;
+use App\Services\API\CourseService;
+use App\Http\Resources\API\CourseResource;
+use App\Http\Controllers\API\BaseController;
+use App\Http\Requests\API\Course\CourseRequest;
+use App\Http\Requests\API\Course\UpdateCourseRequest;
 
-class CategoryCourseController extends BaseController
+class CourseController extends BaseController
 {
     protected $model;
 
     public function __construct()
     {
-        $this->model = new CategoryCourseService();
+        $this->model = new CourseService;
     }
 
     /**
@@ -23,7 +23,7 @@ class CategoryCourseController extends BaseController
      * @param CategoryCourseRequest $request
      * @return \Illuminate\Http\JsonResponse
      */
-    public function store(CategoryCourseRequest $request)
+    public function store(CourseRequest $request)
     {
         $inputData = $request->all();
         $hasFile = $request->hasFile('thumbnail');
@@ -67,7 +67,7 @@ class CategoryCourseController extends BaseController
             $countActive = $this->model->countRecordActive();
             $countTrash = $this->model->countRecordTrash();
             $success = [
-                'category_course' => $result,
+                'course' => $result,
                 'count_active' => $countActive,
                 'count_trash' => $countTrash,
                 'list_action' => $listAction
@@ -87,14 +87,14 @@ class CategoryCourseController extends BaseController
     {
         try {
             $result = $this->model->getById($id);
-            $result = new CategoryCourseResource($result);
+            $result = new CourseResource($result);
             return $this->sendResponse($result, 'Success ! Fetch data success !');
         } catch (\Exception$e) {
             return $this->sendError($e->getMessage(), null);
         }
     }
 
-    public function update(UpdateCategoryCourseRequest $request, $id)
+    public function update(UpdateCourseRequest $request, $id)
     {
         $data = $request->all();
         $hasFile = $request->hasFile('thumbnail');

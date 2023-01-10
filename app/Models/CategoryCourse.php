@@ -20,4 +20,10 @@ class CategoryCourse extends Model
     {
         return $this->hasMany(CategoryCourse::class, 'parent_id');
     }
+
+    public function courses()
+    {
+        return $this->hasMany(Course::class, 'category_course_id');
+    }
+
 }
