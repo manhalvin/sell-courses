@@ -4,8 +4,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\UserController;
-use App\Http\Controllers\API\CategoryCourseController;
 use App\Http\Controllers\API\CourseController;
+use App\Http\Controllers\API\VideoCourseController;
+use App\Http\Controllers\API\CategoryCourseController;
 
 /*
 |--------------------------------------------------------------------------
@@ -81,6 +82,20 @@ Route::prefix('admin/')->middleware('auth:sanctum')->group(function () {
             Route::post('action', 'action')->name('action');
             Route::put('{id}', 'update')->name('update');
             Route::delete('{id}', 'destroy')->name('destroy');
+        });
+    });
+
+    // Route admin: video course
+    Route::controller(VideoCourseController::class)->group(function () {
+        Route::prefix('courses/')->name('courses.video.')->group(function () {
+            Route::get('{course_id}/video', 'index')->name('index');
+        });
+        Route::prefix('course/')->name('course.video')->group(function () {
+            Route::post('{course_id}/video', 'store')->name('store');
+            Route::get('video/{id}', 'show')->name('show');
+            Route::post('video/action', 'action')->name('action');
+            Route::post('video/{id}', 'update')->name('update');
+            Route::delete('video/{id}', 'destroy')->name('destroy');
         });
     });
 });
