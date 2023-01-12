@@ -89,6 +89,15 @@ class PostService extends BaseService
         return PostResource::collection($result);
     }
 
+    public function getPostList($search)
+    {
+        $result = $this->model->getPostList( $search, config('services.PER_PAGE'));
+        if (!$result->count()) {
+            throw new \Exception('Error ! Fetch Data No Success', 1);
+        }
+        return PostResource::collection($result);
+    }
+
     public function countRecordActive()
     {
         return $this->model->countRecordActive();

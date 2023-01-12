@@ -53,7 +53,7 @@ Route::prefix('admin/')->middleware('auth:sanctum')->group(function () {
             Route::post('/', 'store')->name('store');
             Route::get('{id}', 'show')->name('show');
             Route::post('action', 'action')->name('action');
-            Route::post('{id}', 'update')->name('update');
+            Route::put('{id}', 'update')->name('update');
             Route::delete('{id}', 'destroy')->name('destroy');
         });
     });
@@ -95,7 +95,7 @@ Route::prefix('admin/')->middleware('auth:sanctum')->group(function () {
             Route::post('{course_id}/video', 'store')->name('store');
             Route::get('video/{id}', 'show')->name('show');
             Route::post('video/action', 'action')->name('action');
-            Route::post('video/{id}', 'update')->name('update');
+            Route::put('video/{id}', 'update')->name('update');
             Route::delete('video/{id}', 'destroy')->name('destroy');
         });
     });
@@ -119,4 +119,47 @@ Route::prefix('admin/')->middleware('auth:sanctum')->group(function () {
         });
 
     });
+});
+
+Route::prefix('client')->name('client.')->group(function () {
+
+    // Route Client: Post
+    Route::controller(App\Http\Controllers\Client\PostController::class)->group(function () {
+        Route::prefix('posts')->name('post.')->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::get('/detail/{id}', 'show')->name('show');
+        });
+    });
+
+    // Route Client: Course
+    Route::controller(App\Http\Controllers\Client\CourseController::class)->group(function () {
+        Route::prefix('courses')->name('courses.')->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::get('/category/{category_id}', 'getCoursesByCategory')->name('category');
+            Route::get('/enroll/{id}', 'enroll')->name('enroll');
+            Route::post('/enroll', 'enroll')->name('enroll');
+            Route::get('/detail/{course_id}', 'show')->name('show');
+        });
+    });
+
+    // Route Client: User
+    Route::controller(App\Http\Controllers\Client\UserController::class)->middleware('auth:sanctum')->group(function () {
+        Route::prefix('users/')->name('users.')->group(function () {
+            Route::prefix('profile')->name('profile.')->group(function () {
+                Route::post('/', 'updateProfile')->name('update');
+                Route::get('/', 'infoProfile')->name('info');
+            });
+        });
+    });
+
+    // Route Client: Order
+    Route::controller(App\Http\Controllers\Client\OrderController::class)->group(function () {
+        Route::prefix('orders/')->name('orders.')->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::get('/{order_id}', 'show')->name('show');
+            Route::get('/payment', 'payment')->name('payment');
+            Route::post('/payment', 'payment')->name('payment');
+        });
+    });
+
 });
