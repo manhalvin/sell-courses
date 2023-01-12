@@ -60,14 +60,13 @@ class CourseController extends BaseController
         }
     }
 
-    public function enroll(Request $request, $id)
+    public function enroll(Request $request)
     {
-        $name = $request->input('name');
-        $email = $request->input('email');
+        $courseId = $request->input('course_id');
 
         try {
-            $this->model->handleEnroll($name, $email, $id);
-            return $this->sendResponse([], 'Success ! Fetch data success !');
+            $this->model->handleEnroll($courseId);
+            return $this->sendResponse([], 'Success ! Register for the online course successfully !');
         } catch (\Exception$e) {
             return $this->sendError($e->getMessage(), null);
         }

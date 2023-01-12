@@ -3,6 +3,7 @@
 use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\CategoryCourseController;
 use App\Http\Controllers\API\CourseController;
+use App\Http\Controllers\API\OrderController;
 use App\Http\Controllers\API\PostController;
 use App\Http\Controllers\API\UserController;
 use App\Http\Controllers\API\VideoCourseController;
@@ -119,9 +120,23 @@ Route::prefix('admin/')->middleware('auth:sanctum')->group(function () {
         });
 
     });
+
+    // Route admin: orders
+    Route::controller(OrderController::class)->group(function () {
+        Route::prefix('orders/')->name('orders.')->group(function () {
+            Route::get('', 'index')->name('index');
+        });
+        Route::prefix('order/')->name('order.')->group(function () {
+            Route::get('{id}', 'show')->name('show');
+            Route::put('{id}', 'update')->name('update');
+            Route::delete('{id}', 'destroy')->name('destroy');
+            Route::post('action', 'action')->name('action');
+        });
+
+    });
 });
 
-Route::prefix('client')->name('client.')->group(function () {
+Route::prefix('client')->name('client.')->middleware('auth:sanctum')->group(function () {
 
     // Route Client: Post
     Route::controller(App\Http\Controllers\Client\PostController::class)->group(function () {
@@ -136,14 +151,13 @@ Route::prefix('client')->name('client.')->group(function () {
         Route::prefix('courses')->name('courses.')->group(function () {
             Route::get('/', 'index')->name('index');
             Route::get('/category/{category_id}', 'getCoursesByCategory')->name('category');
-            Route::get('/enroll/{id}', 'enroll')->name('enroll');
             Route::post('/enroll', 'enroll')->name('enroll');
             Route::get('/detail/{course_id}', 'show')->name('show');
         });
     });
 
     // Route Client: User
-    Route::controller(App\Http\Controllers\Client\UserController::class)->middleware('auth:sanctum')->group(function () {
+    Route::controller(App\Http\Controllers\Client\UserController::class)->group(function () {
         Route::prefix('users/')->name('users.')->group(function () {
             Route::prefix('profile')->name('profile.')->group(function () {
                 Route::post('/', 'updateProfile')->name('update');
@@ -157,7 +171,6 @@ Route::prefix('client')->name('client.')->group(function () {
         Route::prefix('orders/')->name('orders.')->group(function () {
             Route::get('/', 'index')->name('index');
             Route::get('/{order_id}', 'show')->name('show');
-            Route::get('/payment', 'payment')->name('payment');
             Route::post('/payment', 'payment')->name('payment');
         });
     });

@@ -4,7 +4,6 @@ namespace App\Http\Controllers\API;
 
 use Illuminate\Http\Request;
 use App\Services\API\PostService;
-use App\Http\Controllers\Controller;
 use App\Http\Resources\API\PostResource;
 use App\Http\Requests\API\Post\PostRequest;
 use App\Http\Requests\API\Post\UpdatePostRequest;
