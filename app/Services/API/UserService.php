@@ -3,6 +3,7 @@ namespace App\Services\API;
 
 use Laravolt\Avatar\Avatar;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\File;
 use App\Http\Resources\API\UserResource;
 use App\Repositories\Eloquent\API\UserRepository;
 
@@ -117,18 +118,18 @@ class UserService extends BaseService
      */
     public function handleUpdateUser($data, $id, $hasFile, $thumbnail)
     {
-        $users = $this->userRepository->getUserAll();
-        $dataId = [];
-        foreach ($users as $user) {
-            $dataId[] = $user->id;
-        }
-
-        if (!in_array($id, $dataId)) {
+        $user = $this->userRepository->getUserById($id);
+        if (!$user) {
             throw new \Exception('Error ! No find User', 1);
         }
 
         if ($hasFile) {
-            $imageName = $thumbnail->getClientOriginalName();
+            if (File::exists($user->thumbnail)) {
+                File::delete($user->thumbnail);
+                unlink($user->thumbnail);
+            }
+            $extension = $thumbnail->getClientOriginalExtension();
+            $imageName = time() . '.' . $extension;
             $thumbnail->move('image/users', $imageName);
             $image = 'image/users/' . $imageName;
             $data['thumbnail'] = $image;
@@ -197,34 +198,4 @@ class UserService extends BaseService
         throw new \Exception('Error ! You cannot operate on your account', 1);
     }
 
-    // function list(Request $request) {
-    //     if ($this->authorize('xem-thanh-vien')) {
-    //         $status = $request->input('status');
-    //         $list_act = [
-    //             'delete' => 'Xóa tạm thời'
-    //         ];
-
-    //         if ($status == 'trash') {
-    //             $users = User::onlyTrashed()->latest()->paginate(5);
-    //             $list_act = [
-    //                 'restore' => 'Khôi ngục',
-    //                 'forceDelete' => 'Xóa vĩnh viễn'
-    //             ];
-    //         } else {
-    //             $req = "";
-    //             if ($request->keyword) {
-    //                 $req = $request->keyword;
-    //             }
-    //             $users = User::where('name', 'like', "%{$req}%")->latest()->paginate(5);
-    //         }
-
-    //         // dd($users);
-    //         $count_active = User::count();
-    //         $count_trash = User::onlyTrashed()->count();
-
-    //         $count = [$count_active, $count_trash];
-
-    //         return view('admin.user.list', compact('users', 'count', 'list_act'));
-    //     }
-    // }
 }

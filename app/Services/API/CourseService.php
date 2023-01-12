@@ -1,9 +1,11 @@
 <?php
 namespace App\Services\API;
 
+use Laravolt\Avatar\Avatar;
+use Illuminate\Support\Facades\Session;
+use Gloudemans\Shoppingcart\Facades\Cart;
 use App\Http\Resources\API\CourseResource;
 use App\Repositories\Eloquent\API\CourseRepository;
-use Laravolt\Avatar\Avatar;
 
 class CourseService extends BaseService
 {
@@ -88,6 +90,24 @@ class CourseService extends BaseService
         return CourseResource::collection($result);
     }
 
+    public function getCourseList($search)
+    {
+        $result = $this->model->getCourseList($search, config('services.PER_PAGE'));
+        if (!$result->count()) {
+            throw new \Exception('Error ! Fetch Data No Success', 1);
+        }
+        return CourseResource::collection($result);
+    }
+
+    public function getCoursesByCategory($search, $id)
+    {
+        $checkCategoryExist = $this->model->checkCategoryExist($id);
+        if (!$checkCategoryExist) {
+            throw new \Exception('Error ! Not find category course', 1);
+        }
+        $result = $this->model->getCoursesByCategory($id, $search, config('services.PER_PAGE'));
+        return $result;
+    }
     public function countRecordActive()
     {
         return $this->model->countRecordActive();
@@ -192,6 +212,18 @@ class CourseService extends BaseService
             $this->model->incognitoRecord($listCheck);
             return 'You have successfully converted the record to pending approval';
         }
+    }
+
+    public function handleEnroll($name, $email, $id)
+    {
+        $checkCourseExist = $this->model->checkRecordExist($id);
+        if(!$checkCourseExist){
+            throw new \Exception('Error ! No find course !', 1);
+        }
+        $course = $this->model->getById($id);
+        $session_id = substr(md5(microtime()), rand(0, 26), 5);
+        
+        // dd($course);
     }
 
 }

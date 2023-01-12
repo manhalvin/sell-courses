@@ -1,16 +1,19 @@
 <?php
 namespace App\Repositories\Eloquent\API;
 
+use App\Models\CategoryCourse;
 use App\Models\Course;
 use Illuminate\Support\Facades\Auth;
 
 class CourseRepository
 {
     protected $model;
+    protected $categoryCourse;
 
     public function __construct()
     {
         $this->model = new Course;
+        $this->categoryCourse = new CategoryCourse;
     }
 
     public function createCourse($data)
@@ -33,7 +36,7 @@ class CourseRepository
     {
         $query = $this->model->select('*');
 
-        if($status == 'trash'){
+        if ($status == 'trash') {
             $query->onlyTrashed()->latest();
         }
 
@@ -60,6 +63,49 @@ class CourseRepository
         return !empty($perPage)
         ? $query->orderBy($orderBy, $orderType)->paginate($perPage)
         : $query->orderBy($orderBy, $orderType)->get();
+    }
+
+    public function getCourseList($search = null, $perPage = null)
+    {
+        $query = $this->model->select('*');
+
+        $orderBy = 'created_at';
+        $orderType = 'desc';
+
+        if (!empty($search)) {
+            $query = $query->where(function ($query) use ($search) {
+                $query->orWhere('title', 'like', "%{$search}%");
+            });
+        }
+
+        return !empty($perPage)
+        ? $query->orderBy($orderBy, $orderType)->paginate($perPage)
+        : $query->orderBy($orderBy, $orderType)->get();
+    }
+
+    public function checkCategoryExist($id)
+    {
+        return $this->categoryCourse->where('id', $id)->exists();
+    }
+
+    public function getCoursesByCategory($id, $search = null, $perPage = null)
+    {
+        $query = $this->model
+            ->where('category_course_id', $id);
+
+        if (!empty($search)) {
+            $query = $query->where(function ($query) use ($search) {
+                $query->orWhere('title', 'like', "%{$search}%");
+            });
+        }
+
+        if (!empty($perPage)) {
+            $query = $query->paginate($perPage);
+        } else {
+            $query = $query->get();
+        }
+
+        return $query;
     }
 
     public function countRecordActive()
@@ -91,7 +137,7 @@ class CourseRepository
     public function deleteData($id)
     {
         $this->model->find($id)->update([
-            'user_deleted' => Auth::user()->name
+            'user_deleted' => Auth::user()->name,
         ]);
         return $this->model->find($id)
             ->delete();
@@ -100,7 +146,7 @@ class CourseRepository
     public function destroyData($listCheck)
     {
         $this->model->WhereIn('id', $listCheck)->update([
-            'user_deleted' => Auth::user()->name
+            'user_deleted' => Auth::user()->name,
         ]);
         return $this->model->destroy($listCheck);
     }
@@ -118,14 +164,14 @@ class CourseRepository
     public function approveRecord($listCheck)
     {
         return $this->model->whereIn('id', $listCheck)->update([
-            'status' => 1
+            'status' => 1,
         ]);
     }
 
     public function incognitoRecord($listCheck)
     {
         return $this->model->whereIn('id', $listCheck)->update([
-            'status' => 0
+            'status' => 0,
         ]);
     }
 

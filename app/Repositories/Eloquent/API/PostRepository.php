@@ -54,7 +54,25 @@ class PostRepository
 
         if (!empty($search)) {
             $query = $query->where(function ($query) use ($search) {
-                $query->orWhere('name', 'like', "%{$search}%");
+                $query->orWhere('title', 'like', "%{$search}%");
+            });
+        }
+
+        return !empty($perPage)
+        ? $query->orderBy($orderBy, $orderType)->paginate($perPage)
+        : $query->orderBy($orderBy, $orderType)->get();
+    }
+
+    public function getPostList($search = null)
+    {
+        $query = $this->model->select('*');
+
+        $orderBy = 'created_at';
+        $orderType = 'desc';
+
+        if (!empty($search)) {
+            $query = $query->where(function ($query) use ($search) {
+                $query->orWhere('title', 'like', "%{$search}%");
             });
         }
 
