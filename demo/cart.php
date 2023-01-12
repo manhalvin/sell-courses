@@ -38,6 +38,7 @@ $coupon = Coupon::where('coupon_code', $data['coupon'])
 ->where('coupon_status',1)
 ->where('coupon_date_end','>=',$now)
 ->first();
+
 if($coupon){
     $count_coupon = $coupon->count();
     if($count_coupon>0){

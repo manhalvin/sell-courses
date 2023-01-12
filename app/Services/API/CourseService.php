@@ -2,19 +2,28 @@
 namespace App\Services\API;
 
 use Laravolt\Avatar\Avatar;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
-use Gloudemans\Shoppingcart\Facades\Cart;
 use App\Http\Resources\API\CourseResource;
+use App\Repositories\Eloquent\API\CartRepository;
+use App\Repositories\Eloquent\API\OrderRepository;
 use App\Repositories\Eloquent\API\CourseRepository;
+use App\Repositories\Eloquent\API\OrderDetailRepository;
 
 class CourseService extends BaseService
 {
     protected $model;
     protected $table = 'courses';
+    protected $orderRepository;
+    protected $orderDetailRepository;
+    protected $CartRepository;
 
     public function __construct()
     {
         $this->model = new CourseRepository;
+        $this->orderRepository = new OrderRepository;
+        $this->orderDetailRepository = new OrderDetailRepository;
+        $this->CartRepository = new CartRepository;
     }
 
     /**
@@ -214,16 +223,56 @@ class CourseService extends BaseService
         }
     }
 
-    public function handleEnroll($name, $email, $id)
+    public function handleEnroll($id)
     {
         $checkCourseExist = $this->model->checkRecordExist($id);
-        if(!$checkCourseExist){
+        if (!$checkCourseExist) {
             throw new \Exception('Error ! No find course !', 1);
         }
+        $qty = 1;
         $course = $this->model->getById($id);
-        $session_id = substr(md5(microtime()), rand(0, 26), 5);
-        
-        // dd($course);
+        $sessionId = substr(md5(microtime()), rand(0, 26), 5);
+        $userId = Auth::user()->id;
+
+        $cartItem = $this->CartRepository->getCart($id, $userId);
+        if ($cartItem) {
+            $cartItem->qty = $qty;
+            $cartItem->save();
+        } else {
+            $data = [
+                'session_id' => $sessionId,
+                'course_id' => $id,
+                'user_id' => $userId,
+                'qty' => $qty,
+                'title' => $course->title,
+                'price' => $course->price,
+                'thumbnail' => $course->thumbnail
+            ];
+            $this->CartRepository->createCart($data);
+        }
+        return $cartItem;
+    }
+
+    public function infoCart()
+    {
+
+        $userId = Auth::user()->id;
+        $cart = $this->CartRepository->getCartByUserId($userId);
+        if ($cart) {
+            $numOrder = 0;
+            $total = 0;
+            foreach ($cart as $item) {
+                $numOrder += $item->qty;
+                $total += $item->price;
+            }
+
+            $cartInfo = array(
+                'num_order' => $numOrder,
+                'total' => $total,
+            );
+
+            return $cartInfo;
+        }
     }
 
 }
