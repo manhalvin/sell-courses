@@ -7,18 +7,16 @@ use App\Repositories\Eloquent\API\OrderRepository;
 
 class OrderService extends BaseService
 {
-    protected $model;
+    protected $orderDetailRepository;
     protected $orderRepository;
     protected $couponRepository;
     protected $table = 'order_details';
 
     public function __construct()
     {
-        $this->model = new OrderDetailRepository;
+        $this->orderDetailRepository = new OrderDetailRepository;
         $this->orderRepository = new OrderRepository;
         $this->couponRepository = new CouponRepository;
     }
-
-    
 
 }

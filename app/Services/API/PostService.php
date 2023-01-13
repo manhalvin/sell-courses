@@ -257,9 +257,6 @@ class PostService extends BaseService
         }
 
         $result = $this->model->deleteImageAll($data['post_id']);
-        // $success = [
-        //     'message' => 'Success ! Delete Images Post Success',
-        // ];
         return $result;
     }
 

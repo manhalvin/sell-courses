@@ -4,7 +4,7 @@ namespace App\Services\API;
 class BaseService
 {
     /**
-     * Summary of sendError
+     * Throw error 
      * @param mixed $error
      * @throws \Exception
      * @return never

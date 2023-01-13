@@ -27,45 +27,39 @@ class OrderService extends BaseService
         $this->orderDetailRepository = new OrderDetailRepository;
     }
 
-    public function handlePayment($email, $name, $couponCode, $paymentMethod)
+    /**
+     * Xử lý chức năng checkout bên client
+     * @param mixed $email
+     * @param mixed $name
+     * @param mixed $couponCode
+     * @param mixed $paymentMethod
+     * @throws \Exception
+     * @return mixed
+     */
+    public function handleCheckout($email, $name, $couponCode, $paymentMethod)
     {
         $userId = Auth::user()->id;
         $infoCart = $this->infoCart();
         if ($couponCode) {
-            $couponItem = $this->couponRepository->getCouponList($couponCode);
-            if ($couponItem) {
-                $count_coupon = $couponItem->count();
-                if ($count_coupon > 0) {
-                    $coupon_array = array();
-                    if ($coupon_array) {
-                        $is_available = 0;
-                        if ($is_available == 0) {
-                            $coupon[] = [
-                                'coupon_code' => $couponItem->code,
-                                'coupon_condition' => $couponItem->condition,
-                                'coupon_number' => $couponItem->quantify,
-                            ];
-                        }
-                    } else {
-                        $coupon[] = [
-                            'coupon_code' => $couponItem->code,
-                            'coupon_condition' => $couponItem->condition,
-                            'coupon_number' => $couponItem->quantify,
-                        ];
-                    }
-                }
 
-                $total = $infoCart['total'];
-                foreach ($coupon as $item) {
-                    if ($item['coupon_condition'] == 1) {
-                        $totalCoupon = ($total * $item['coupon_number']) / 100;
-                        $totalReduction = $total - $totalCoupon;
-                    } elseif ($item['coupon_condition'] == 2) {
-                        $totalReduction = $total - $item['coupon_number'];
-                    }
-                }
-            } else {
-                throw new \Exception(' Coupon wrong or coupon expired', 1);
+            $coupon = $this->couponRepository->getCouponList($couponCode);
+            if ($coupon->quantify <= 0) {
+                throw new \Exception('The discount code is out of stock !', 1);
+            }
+            $coupon->quantify -= 1;
+            $coupon->coupon_user = $coupon->code . ',' . Auth::id();
+            $coupon->save();
+
+            if (!$coupon) {
+                throw new \Exception('Coupon wrong or coupon expired', 1);
+            }
+
+            $total = $infoCart['total'];
+            if ($coupon->condition == 1) {
+                $totalCoupon = ($total * $coupon->time) / 100;
+                $totalReduction = $total - $totalCoupon;
+            } elseif ($coupon->condition == 2) {
+                $totalReduction = $total - $coupon->time;
             }
         }
 
@@ -76,22 +70,105 @@ class OrderService extends BaseService
             'num_order' => $infoCart['num_order'],
             'method_payment' => $paymentMethod,
             'total_reduction' => !empty($totalCoupon) ? $totalCoupon : 0,
-            'coupon_code' => !empty($couponCode) ? $couponCode : 0,
+            'coupon_code' => $couponCode ?? 0,
             'final_amount' => !empty($totalReduction) ? $totalReduction : $infoCart['total'],
         ];
+
         $orderId = $this->orderRepository->createOrder($data);
         if (!$orderId) {
             throw new \Exception('Save order fail !', 1);
         }
 
-        $cart = $this->cartRepository->getCartByUserId($userId);
-        foreach ($cart as $value) {
-            $this->orderDetailRepository->createOrderDetail($value, $orderId);
+        $carts = $this->cartRepository->getCartByUserId($userId);
+        foreach ($carts as $cart) {
+            $this->orderDetailRepository->createOrderDetail($cart, $orderId);
         }
 
-        return $cart;
+        return $carts;
     }
 
+    /**
+     * Xử lý tích hơp thanh toán VNPay = ATM
+     * @return void
+     */
+
+    public function handlePayment()
+    {
+        $vnp_Url = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html";
+        $vnp_Returnurl = "http://localhost/Laravel/api/client/courses/checkout/";
+        $vnp_TmnCode = "UD2KZW06"; //Mã website tại VNPAY
+        $vnp_HashSecret = "HUQJSLMKGFXYCNYOWXBBEYDADEGNMOBB"; //Chuỗi bí mật
+
+        $vnp_TxnRef = 'IS-HZZZWA8'; //Mã đơn hàng.
+        $vnp_OrderInfo = 'Thanh toán đơn hàng';
+        $vnp_OrderType = 'billpayment';
+        $vnp_Amount = 50000 * 100;
+        $vnp_Locale = 'vn';
+        $vnp_BankCode = 'NCB';
+        if (isset($fullName) && trim($fullName) != '') {
+            $name = explode(' ', $fullName);
+            $vnp_Bill_FirstName = array_shift($name);
+            $vnp_Bill_LastName = array_pop($name);
+        }
+        $inputData = array(
+            "vnp_Version" => "2.1.0",
+            "vnp_TmnCode" => $vnp_TmnCode,
+            "vnp_Amount" => $vnp_Amount,
+            "vnp_Command" => "pay",
+            "vnp_CreateDate" => date('YmdHis'),
+            "vnp_CurrCode" => "VND",
+            "vnp_Locale" => $vnp_Locale,
+            "vnp_OrderInfo" => $vnp_OrderInfo,
+            "vnp_OrderType" => $vnp_OrderType,
+            "vnp_ReturnUrl" => $vnp_Returnurl,
+            "vnp_TxnRef" => $vnp_TxnRef,
+            "vnp_Bill_FirstName" => 'Quốc',
+            "vnp_Bill_LastName" => 'Mạnh',
+        );
+
+        if (isset($vnp_BankCode) && $vnp_BankCode != "") {
+            $inputData['vnp_BankCode'] = $vnp_BankCode;
+        }
+        if (isset($vnp_Bill_State) && $vnp_Bill_State != "") {
+            $inputData['vnp_Bill_State'] = $vnp_Bill_State;
+        }
+
+        ksort($inputData);
+        $query = "";
+        $i = 0;
+        $hashdata = "";
+        foreach ($inputData as $key => $value) {
+            if ($i == 1) {
+                $hashdata .= '&' . urlencode($key) . "=" . urlencode($value);
+            } else {
+                $hashdata .= urlencode($key) . "=" . urlencode($value);
+                $i = 1;
+            }
+            $query .= urlencode($key) . "=" . urlencode($value) . '&';
+        }
+
+        $vnp_Url = $vnp_Url . "?" . $query;
+        if (isset($vnp_HashSecret)) {
+            $vnpSecureHash = hash_hmac('sha512', $hashdata, $vnp_HashSecret); //
+            $vnp_Url .= 'vnp_SecureHash=' . $vnpSecureHash;
+        }
+        $returnData = array('code' => '00'
+            , 'message' => 'success'
+            , 'data' => $vnp_Url);
+        if (isset($_POST['redirect'])) {
+            header('Location: ' . $vnp_Url);
+            die();
+        } else {
+            echo json_encode($returnData);
+        }
+    }
+
+    /**
+     * Xử lý tính toán
+     * Hiển thi tổng tiền và tổng số lương khóa hoc đã đăt trong cart
+     * nhưng chưa thanh toán
+     * @return array
+     */
     public function infoCart()
     {
         $userId = Auth::user()->id;

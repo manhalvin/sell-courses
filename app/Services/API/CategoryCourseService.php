@@ -7,12 +7,12 @@ use Laravolt\Avatar\Avatar;
 
 class CategoryCourseService extends BaseService
 {
-    protected $model;
+    protected $categoryCourse;
     protected $table = 'category_courses';
 
     public function __construct()
     {
-        $this->model = new CategoryCourseRepository;
+        $this->categoryCourse = new CategoryCourseRepository;
     }
 
     /**
@@ -29,14 +29,13 @@ class CategoryCourseService extends BaseService
             $avatar = new Avatar();
             $inputData['thumbnail'] = $avatar->create($inputData['name'])->toBase64();
         } else {
-            // $imageName = pathinfo($thumbnail->getClientOriginalName(), PATHINFO_FILENAME);
             $imageName = time() . '.' . $thumbnail->getClientOriginalExtension();
             $thumbnail->move('image/category/course/', $imageName);
             $image = 'image/category/course/' . $imageName;
             $inputData['thumbnail'] = $image;
         }
 
-        $categoryCourse = $this->model->createCategoryCourse($inputData);
+        $categoryCourse = $this->categoryCourse->createCategoryCourse($inputData);
         if (!$categoryCourse) {
             throw new \Exception('Error ! Create Data Category Courses No Success', 1);
         }
@@ -82,36 +81,59 @@ class CategoryCourseService extends BaseService
             'sortType' => $sortType,
         ];
 
-        $result = $this->model->getList($status, $filters, $search, $sortArr, config('services.PER_PAGE'));
+        $result = $this->categoryCourse->getList($status, $filters, $search, $sortArr, config('services.PER_PAGE'));
         if (!$result->count()) {
             throw new \Exception('Error ! Fetch Data No Success', 1);
         }
         return CategoryCourseResource::collection($result);
     }
 
+    /**
+     * Lấy số lượng bản ghi kích hoat
+     * @return mixed
+     */
     public function countRecordActive()
     {
-        return $this->model->countRecordActive();
+        return $this->categoryCourse->countRecordActive();
     }
 
+    /**
+     * Lấy số lương bản ghi thùng rác
+     * @return int|mixed
+     */
     public function countRecordTrash()
     {
-        return $this->model->countRecordTrash();
+        return $this->categoryCourse->countRecordTrash();
     }
 
+    /**
+     * Lấy thông tin chi tiêt danh muc khóa hoc
+     * @param mixed $id
+     * @throws \Exception
+     * @return mixed
+     */
     public function getById($id)
     {
-        $item = $this->model->checkRecordExist($id);
+        $item = $this->categoryCourse->checkRecordExist($id);
         if (!$item) {
             throw new \Exception('Error ! Fetch Data No Success', 1);
         }
-        $model = $this->model->getById($id);
-        return $model;
+        $categoryCourse = $this->categoryCourse->getById($id);
+        return $categoryCourse;
     }
 
+    /**
+     * Xử lý lưu dữ liêu danh mục khóa hoc
+     * @param mixed $data
+     * @param mixed $id
+     * @param mixed $hasFile
+     * @param mixed $thumbnail
+     * @throws \Exception
+     * @return mixed
+     */
     public function handleUpdateData($data, $id, $hasFile, $thumbnail)
     {
-        $item = $this->model->checkRecordExist($id);
+        $item = $this->categoryCourse->checkRecordExist($id);
         if (!$item) {
             throw new \Exception('Error ! Not find record', 1);
         }
@@ -123,7 +145,7 @@ class CategoryCourseService extends BaseService
             $data['thumbnail'] = $image;
         }
 
-        $result = $this->model->updateCategoryCourse($data, $id);
+        $result = $this->categoryCourse->updateCategoryCourse($data, $id);
         if (!$result) {
             throw new \Exception('Error ! Update Data No Success', 1);
         }
@@ -131,14 +153,20 @@ class CategoryCourseService extends BaseService
         return $result;
     }
 
+    /**
+     * Xử lý xóa tam thời bản ghi
+     * @param mixed $id
+     * @throws \Exception
+     * @return mixed
+     */
     public function handleDeleteData($id)
     {
-        $item = $this->model->checkRecordExist($id);
+        $item = $this->categoryCourse->checkRecordExist($id);
         if (!$item) {
             throw new \Exception('Error ! Not find record', 1);
         }
 
-        $result = $this->model->deleteData($id);
+        $result = $this->categoryCourse->deleteData($id);
         if (!$result) {
             throw new \Exception('Error ! Delete Data No Success', 1);
         }
@@ -146,6 +174,13 @@ class CategoryCourseService extends BaseService
         return $result;
     }
 
+    /**
+     * Xử lý các hành đông như xóa tạm thời , xóa vĩnh viễn , khôi phuc bản ghi
+     * @param mixed $listCheck
+     * @param mixed $action
+     * @throws \Exception
+     * @return string
+     */
     public function handleDataAction($listCheck, $action)
     {
         if (empty($listCheck)) {
@@ -165,28 +200,28 @@ class CategoryCourseService extends BaseService
 
         if ($action == 'delete') {
 
-            $item = $this->model->checkManyRecordExist($listCheck);
+            $item = $this->categoryCourse->checkManyRecordExist($listCheck);
             if (!$item) {
                 throw new \Exception('Record no exist', 1);
             }
 
-            $this->model->destroyData($listCheck);
+            $this->categoryCourse->destroyData($listCheck);
             return 'You have successfully deleted the temporary record';
 
         } elseif ($action == 'active') {
-            $this->model->restoreData($listCheck);
+            $this->categoryCourse->restoreData($listCheck);
             return 'You have successfully restored the record';
 
         } elseif ($action == 'forceDelete') {
-            $this->model->forceDelete($listCheck);
+            $this->categoryCourse->forceDelete($listCheck);
             return 'You have successfully restored the record';
 
         } elseif ($action == 'public') {
-            $this->model->approveRecord($listCheck);
+            $this->categoryCourse->approveRecord($listCheck);
             return 'You have successfully made the record public';
 
         } else {
-            $this->model->incognitoRecord($listCheck);
+            $this->categoryCourse->incognitoRecord($listCheck);
             return 'You have successfully converted the record to pending approval';
         }
     }

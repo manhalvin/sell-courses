@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Schema;
 class CreateOrdersTable extends Migration
 {
     /**
-     * Run the migrations.
+     * Tao bảng order
      *
      * @return void
      */
@@ -39,7 +39,7 @@ class CreateOrdersTable extends Migration
     }
 
     /**
-     * Reverse the migrations.
+     * Xóa bảng order
      *
      * @return void
      */

@@ -22,7 +22,8 @@ class CreateUsersTable extends Migration
                 ->comment('username: tên người dùng');
             $table->string('email');
             $table->string('password');
-            $table->string('gender')
+            $table->enum('gender', ['male', 'female', 'other'])
+                ->default('other')
                 ->comment('gender: Giới tính')
                 ->nullable();
             $table->string('mobile_no')

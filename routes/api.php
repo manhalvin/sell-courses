@@ -27,10 +27,8 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 
 // Route: Auth
 Route::prefix('auth/')->name('auth.')->group(function () {
-
     Route::controller(AuthController::class)->group(function () {
         Route::post('register', 'register')->name('register');
-        // Route::get('register/activate/{uuid}', 'verifyAccount')->name('register_activate');
         Route::post('otp/verification/{user_id}', 'verifyWithOtp')->name('otp.verification');
         Route::post('login', 'login')->name('login');
         Route::put('change-password', 'changePassword')->name('change_password')->middleware('auth:sanctum');
@@ -43,7 +41,7 @@ Route::prefix('auth/')->name('auth.')->group(function () {
 
 });
 
-Route::prefix('admin/')->middleware('auth:sanctum')->group(function () {
+Route::prefix('admin/')->middleware('auth:sanctum','CheckRole')->group(function () {
 
     // Route admin: category courses
     Route::controller(CategoryCourseController::class)->group(function () {
@@ -152,6 +150,7 @@ Route::prefix('client')->name('client.')->middleware('auth:sanctum')->group(func
             Route::get('/', 'index')->name('index');
             Route::get('/category/{category_id}', 'getCoursesByCategory')->name('category');
             Route::post('/enroll', 'enroll')->name('enroll');
+            Route::delete('/unenrolled', 'unenrolled')->name('unenrolled');
             Route::get('/detail/{course_id}', 'show')->name('show');
         });
     });
@@ -171,6 +170,7 @@ Route::prefix('client')->name('client.')->middleware('auth:sanctum')->group(func
         Route::prefix('orders/')->name('orders.')->group(function () {
             Route::get('/', 'index')->name('index');
             Route::get('/{order_id}', 'show')->name('show');
+            Route::post('/checkout', 'checkout')->name('checkout');
             Route::post('/payment', 'payment')->name('payment');
         });
     });

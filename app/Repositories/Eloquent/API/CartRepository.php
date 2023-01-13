@@ -2,8 +2,6 @@
 namespace App\Repositories\Eloquent\API;
 
 use App\Models\Cart;
-use Carbon\Carbon;
-use App\Models\Coupon;
 use Illuminate\Support\Facades\Auth;
 
 class CartRepository
@@ -32,6 +30,13 @@ class CartRepository
     public function getCart($productId, $userId)
     {
         return $this->model->where('course_id', $productId)->where('user_id', $userId)->first();
+    }
+
+    public function deleteCourse($id, $userId)
+    {
+        return $this->model->where('course_id', $id)
+            ->where('user_id', $userId)
+            ->delete();
     }
 
     public function getCartByUserId($userId)

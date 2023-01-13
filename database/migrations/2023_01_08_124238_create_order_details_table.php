@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Schema;
 class CreateOrderDetailsTable extends Migration
 {
     /**
-     * Run the migrations.
+     * Tạo bảng đơn hàng chi tiêt
      *
      * @return void
      */
@@ -39,7 +39,7 @@ class CreateOrderDetailsTable extends Migration
     }
 
     /**
-     * Reverse the migrations.
+     * Xóa bảng đơn hàng chi tiêt
      *
      * @return void
      */

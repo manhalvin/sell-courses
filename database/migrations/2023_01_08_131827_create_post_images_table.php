@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Schema;
 class CreatePostImagesTable extends Migration
 {
     /**
-     * Run the migrations.
+     * Xóa bảng quản lý nhiều hình ảnh thuôc bài viết
      *
      * @return void
      */
@@ -33,7 +33,7 @@ class CreatePostImagesTable extends Migration
     }
 
     /**
-     * Reverse the migrations.
+     * Xóa bảng quản lý nhiều hình ảnh thuôc bài viết
      *
      * @return void
      */

@@ -16,6 +16,11 @@ class CourseRepository
         $this->categoryCourse = new CategoryCourse;
     }
 
+    /**
+     * Tạo khóa học
+     * @param mixed $data
+     * @return \Illuminate\Database\Eloquent\Model|null
+     */
     public function createCourse($data)
     {
         $this->model->title = $data['title'];
@@ -32,6 +37,15 @@ class CourseRepository
         return $this->model->fresh();
     }
 
+    /**
+     * Lấy danh sách khóa hoc có combo: filter + search + sort + pagination
+     * @param mixed $status
+     * @param mixed $filters
+     * @param mixed $search
+     * @param mixed $sortArr
+     * @param mixed $perPage
+     * @return mixed
+     */
     public function getList($status, $filters = [], $search = null, $sortArr = null, $perPage = null)
     {
         $query = $this->model->select('*');
@@ -65,6 +79,12 @@ class CourseRepository
         : $query->orderBy($orderBy, $orderType)->get();
     }
 
+    /**
+     * Lấy danh sach khóa hoc combo: search + pagination
+     * @param mixed $search
+     * @param mixed $perPage
+     * @return mixed
+     */
     public function getCourseList($search = null, $perPage = null)
     {
         $query = $this->model->select('*');
@@ -83,11 +103,23 @@ class CourseRepository
         : $query->orderBy($orderBy, $orderType)->get();
     }
 
+    /**
+     * Kiểm tra danh muc khóa học có tồn tai ktrong database
+     * @param mixed $id
+     * @return mixed
+     */
     public function checkCategoryExist($id)
     {
         return $this->categoryCourse->where('id', $id)->exists();
     }
 
+    /**
+     * Lây khóa hoc theo danh muc khóa hoc (combo: search + pagination)
+     * @param mixed $id
+     * @param mixed $search
+     * @param mixed $perPage
+     * @return mixed
+     */
     public function getCoursesByCategory($id, $search = null, $perPage = null)
     {
         $query = $this->model
@@ -108,32 +140,57 @@ class CourseRepository
         return $query;
     }
 
+    /**
+     * Lấy số lương bản ghi chưa xóa
+     * @return mixed
+     */
     public function countRecordActive()
     {
         return $this->model->count();
     }
 
+    /**
+     *  Lây sô lương bản ghi đã bi xóa mềm
+     * @return int|mixed
+     */
     public function countRecordTrash()
     {
         return $this->model->onlyTrashed()->count();
     }
 
+    /**
+     * Kiểm tra 1 bản ghi có tồn tai trong database
+     * @param mixed $id
+     * @return mixed
+     */
     public function checkRecordExist($id)
     {
         return $this->model->where('id', $id)->exists();
     }
 
+    // Thông tin chi tiêt khóa hoc
     public function getById($id)
     {
         return $this->model->find($id);
     }
 
-    public function updateCategoryCourse($data, $id)
+    /**
+     * Câp nhât khóa học theo id của khóa hoc
+     * @param mixed $data
+     * @param mixed $id
+     * @return mixed
+     */
+    public function updateCourse($data, $id)
     {
         return $this->model->find($id)
             ->update($data);
     }
 
+    /**
+     * Xóa tam thời 1 bản ghi
+     * @param mixed $id
+     * @return mixed
+     */
     public function deleteData($id)
     {
         $this->model->find($id)->update([
@@ -143,6 +200,11 @@ class CourseRepository
             ->delete();
     }
 
+    /**
+     * Xóa tam thời nhiều bản ghi
+     * @param mixed $listCheck
+     * @return int
+     */
     public function destroyData($listCheck)
     {
         $this->model->WhereIn('id', $listCheck)->update([
@@ -151,16 +213,29 @@ class CourseRepository
         return $this->model->destroy($listCheck);
     }
 
+    /**
+     * Khôi phuc bản ghi
+     * withTrashed(): trả về tất cả các bản ghi, bao gồm cả những bản ghi đã bị xóa (soft delete) và chưa bị xóa.
+     * onlyTrashed(): chỉ trả về các bản ghi đã bị xóa (soft delete) trong cơ sở dữ liệu
+     * @param mixed $listCheck
+     * @return mixed
+     */
     public function restoreData($listCheck)
     {
-        return $this->model->onlyTrashed()->whereIn('id', $listCheck)->restore();
+        return $this->model->withTrashed()->whereIn('id', $listCheck)->restore();
     }
 
+    /**
+     *  Xóa vĩnh viễn một bản ghi
+     * @param mixed $listCheck
+     * @return mixed
+     */
     public function forceDelete($listCheck)
     {
-        return $this->model->onlyTrashed()->whereIn('id', $listCheck)->forceDelete();
+        return $this->model->withTrashed()->whereIn('id', $listCheck)->forceDelete();
     }
 
+    // Câp nhât trang thái bản ghi: phê duyêt
     public function approveRecord($listCheck)
     {
         return $this->model->whereIn('id', $listCheck)->update([
@@ -168,6 +243,7 @@ class CourseRepository
         ]);
     }
 
+    // Câp nhât trang thái bản ghi: chưa phê duyêt
     public function incognitoRecord($listCheck)
     {
         return $this->model->whereIn('id', $listCheck)->update([
@@ -175,6 +251,11 @@ class CourseRepository
         ]);
     }
 
+    /**
+     * Kiểm tra nhiều bản ghi có tồn tai trong database
+     * @param mixed $listCheck
+     * @return mixed
+     */
     public function checkManyRecordExist($listCheck)
     {
         return $this->model->whereIn('id', $listCheck)->exists();

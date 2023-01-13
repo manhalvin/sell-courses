@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Schema;
 class CreatePostsTable extends Migration
 {
     /**
-     * Run the migrations.
+     * Tạo bảng bài viết giới thiệu về khóa học
      *
      * @return void
      */
@@ -38,7 +38,7 @@ class CreatePostsTable extends Migration
     }
 
     /**
-     * Reverse the migrations.
+     * Xóa bảng bài viết giới thiệu về khóa học
      *
      * @return void
      */

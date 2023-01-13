@@ -17,15 +17,25 @@ class OrderController extends BaseController
         $this->orderService = new OrderService;
     }
 
-    public function payment(PaymentRequest $request)
+    public function checkout(PaymentRequest $request)
     {
         $email = $request->input('email');
         $name = $request->input('name');
         $couponCode = $request->input('coupon');
         $paymentMethod = $request->input('payment_method');
 
-        try {;
-            $this->orderService->handlePayment($email, $name, $couponCode, $paymentMethod);
+        try {
+            $this->orderService->handleCheckout($email, $name, $couponCode, $paymentMethod);
+            return $this->sendResponse([], 'Success ! Checkout success');
+        } catch (\Exception$e) {
+            return $this->sendError($e->getMessage(), null);
+        }
+    }
+
+    public function payment()
+    {
+        try {
+            $this->orderService->handlePayment();
             return $this->sendResponse([], 'Success ! Payment success');
         } catch (\Exception$e) {
             return $this->sendError($e->getMessage(), null);
