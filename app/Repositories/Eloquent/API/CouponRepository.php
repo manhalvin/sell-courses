@@ -14,6 +14,12 @@ class CouponRepository
         $this->model = new Coupon;
     }
 
+    /**
+     * Tạo đơn hàng chi tiêt
+     * @param mixed $data
+     * @param mixed $orderId
+     * @return void
+     */
     public function createOrderDetail($data, $orderId)
     {
         $this->model->create([
@@ -28,6 +34,11 @@ class CouponRepository
         ]);
     }
 
+    /**
+     * Lấy danh sách mã giảm gia (kiểm tra mã coupon hết hạn chưa ?)
+     * @param mixed $couponCode
+     * @return mixed
+     */
     public function getCouponList($couponCode)
     {
         $today = Carbon::now('Asia/Ho_Chi_Minh');

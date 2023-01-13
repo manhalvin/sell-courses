@@ -17,9 +17,9 @@ class PostResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'title' => $this->title,
-            'content' => $this->content,
-            'slug' => $this->slug,
+            'title' => htmlspecialchars($this->title, ENT_QUOTES, 'UTF-8'),
+            'content' => htmlspecialchars($this->content, ENT_QUOTES, 'UTF-8'),
+            'slug' => htmlspecialchars($this->slug, ENT_QUOTES, 'UTF-8'),
             'thumbnail' => Str::limit($this->thumbnail, 10),
             'status' => $this->status == 1 ? "Show" : "Hidden",
             'created_at' => $this->created_at->format('d/m/Y'),

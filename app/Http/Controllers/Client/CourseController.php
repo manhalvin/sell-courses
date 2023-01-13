@@ -70,6 +70,17 @@ class CourseController extends BaseController
         } catch (\Exception$e) {
             return $this->sendError($e->getMessage(), null);
         }
+    }
 
+    public function unenrolled(Request $request)
+    {
+        $courseId = $request->input('course_id');
+
+        try {
+            $this->model->handleUnenrolled($courseId);
+            return $this->sendResponse([], 'Success ! Successfully canceled course registration !');
+        } catch (\Exception$e) {
+            return $this->sendError($e->getMessage(), null);
+        }
     }
 }

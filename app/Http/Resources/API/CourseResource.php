@@ -18,7 +18,7 @@ class CourseResource extends JsonResource
         return [
             'id' => $this->id,
             'title' => $this->title,
-            'content' => $this->content,
+            'content' => htmlspecialchars($this->content, ENT_QUOTES, 'UTF-8'),
             'slug' => $this->slug,
             'thumbnail' => Str::limit($this->thumbnail, 10),
             'price' => $this->price,

@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Schema;
 class CreateCoursesTable extends Migration
 {
     /**
-     * Run the migrations.
+     * Tạo bảng khóa học
      *
      * @return void
      */
@@ -44,7 +44,7 @@ class CreateCoursesTable extends Migration
     }
 
     /**
-     * Reverse the migrations.
+     * Xóa bảng khóa hoc
      *
      * @return void
      */

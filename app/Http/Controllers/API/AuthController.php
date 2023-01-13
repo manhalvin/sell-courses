@@ -90,6 +90,11 @@ class AuthController extends BaseController
         }
     }
 
+    /**
+     * Chức năng đăng nhập tài khoản
+     * @param LoginRequest $request
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function login(LoginRequest $request)
     {
         $email = $request->input('email');
@@ -166,6 +171,7 @@ class AuthController extends BaseController
         }
     }
 
+    // Chức năng logout
     public function logout()
     {
         Auth::logout();

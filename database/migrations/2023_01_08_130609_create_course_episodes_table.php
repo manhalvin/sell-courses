@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Schema;
 class CreateCourseEpisodesTable extends Migration
 {
     /**
-     * Run the migrations.
+     * Tạo bảng video khóa học
      *
      * @return void
      */
@@ -39,7 +39,7 @@ class CreateCourseEpisodesTable extends Migration
     }
 
     /**
-     * Reverse the migrations.
+     * Xóa bảng video khóa hoc
      *
      * @return void
      */

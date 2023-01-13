@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Schema;
 class CreateCouponsTable extends Migration
 {
     /**
-     * Run the migrations.
+     * Tạo bảng mã giảm giá
      *
      * @return void
      */
@@ -49,7 +49,7 @@ class CreateCouponsTable extends Migration
     }
 
     /**
-     * Reverse the migrations.
+     * Xóa bảng mã giảm giá
      *
      * @return void
      */
