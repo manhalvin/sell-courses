@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Http\Requests\API\PaymentRequest;
 use App\Http\Controllers\API\BaseController;
 
-class OrderController extends BaseController
+class ClientOrderController extends BaseController
 {
     protected $orderService;
 
@@ -17,6 +17,11 @@ class OrderController extends BaseController
         $this->orderService = new OrderService;
     }
 
+    /**
+     * Checkout
+     * @param PaymentRequest $request
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function checkout(PaymentRequest $request)
     {
         $email = $request->input('email');
@@ -32,6 +37,10 @@ class OrderController extends BaseController
         }
     }
 
+    /**
+     * Payment
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function payment()
     {
         try {
@@ -42,6 +51,10 @@ class OrderController extends BaseController
         }
     }
 
+    /**
+     * Hiển thị danh sách đơn hàng
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function index()
     {
         $userId = Auth::user()->id;
@@ -53,6 +66,11 @@ class OrderController extends BaseController
         }
     }
 
+    /**
+     * Hiển thị thông tin chi tiết đơn  hàng
+     * @param mixed $id
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function show($id)
     {
         try {

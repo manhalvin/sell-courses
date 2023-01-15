@@ -43,16 +43,16 @@ class OrderService extends BaseService
         if ($couponCode) {
 
             $coupon = $this->couponRepository->getCouponList($couponCode);
+            if (!$coupon) {
+                throw new \Exception('Coupon wrong or coupon expired', 1);
+            }
+
             if ($coupon->quantify <= 0) {
                 throw new \Exception('The discount code is out of stock !', 1);
             }
             $coupon->quantify -= 1;
             $coupon->coupon_user = $coupon->code . ',' . Auth::id();
             $coupon->save();
-
-            if (!$coupon) {
-                throw new \Exception('Coupon wrong or coupon expired', 1);
-            }
 
             $total = $infoCart['total'];
             if ($coupon->condition == 1) {
@@ -91,7 +91,6 @@ class OrderService extends BaseService
      * Xử lý tích hơp thanh toán VNPay = ATM
      * @return void
      */
-
     public function handlePayment()
     {
         $vnp_Url = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html";
@@ -190,6 +189,12 @@ class OrderService extends BaseService
         }
     }
 
+    /**
+     * Lấy danh sách đơn hàng
+     * @param mixed $userId
+     * @throws \Exception
+     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
+     */
     public function getOrderList($userId)
     {
         $result = $this->orderRepository->getOrderList($userId);
@@ -199,6 +204,12 @@ class OrderService extends BaseService
         return OrderResource::collection($result);
     }
 
+    /**
+     * Lấy đơn hàng chi tiết
+     * @param mixed $id
+     * @throws \Exception
+     * @return mixed
+     */
     public function getById($id)
     {
         $item = $this->orderDetailRepository->checkRecordExist($id);
@@ -209,6 +220,16 @@ class OrderService extends BaseService
         return $model;
     }
 
+    /**
+     * Lấy danh sách tất cả đơn hàng
+     * combo: status, search, sort
+     * @param mixed $status
+     * @param mixed $search
+     * @param mixed $sortBy
+     * @param mixed $sortType
+     * @throws \Exception
+     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
+     */
     public function getAll($status, $search, $sortBy, $sortType)
     {
         // Lọc trạng thái ẩn hiên
@@ -254,16 +275,31 @@ class OrderService extends BaseService
         return OrderResource::collection($result);
     }
 
+    /**
+     * Lấy số lượng bản ghi kích hoạt
+     * @return mixed
+     */
     public function countRecordActive()
     {
         return $this->orderRepository->countRecordActive();
     }
 
+    /**
+     * Lấy số lượng bản ghi đã bị xóa mềm
+     * @return int|mixed
+     */
     public function countRecordTrash()
     {
         return $this->orderRepository->countRecordTrash();
     }
 
+    /**
+     * Xử lý cập nhật trạng thái đơn hàng
+     * @param mixed $data
+     * @param mixed $id
+     * @throws \Exception
+     * @return mixed
+     */
     public function handleUpdateData($data, $id)
     {
         $item = $this->orderRepository->checkRecordExist($id);
@@ -279,6 +315,12 @@ class OrderService extends BaseService
         return $result;
     }
 
+    /**
+     * Xử lý xóa mềm bản ghi
+     * @param mixed $id
+     * @throws \Exception
+     * @return mixed
+     */
     public function handleDeleteData($id)
     {
         $item = $this->orderRepository->checkRecordExist($id);
@@ -293,7 +335,13 @@ class OrderService extends BaseService
 
         return $result;
     }
-
+    /**
+     * Xử lý hành động : xóa tạm thời, xóa vĩnh viễn, khôi phục bản ghi
+     * @param mixed $listCheck
+     * @param mixed $action
+     * @throws \Exception
+     * @return string
+     */
     public function handleDataAction($listCheck, $action)
     {
         if (empty($listCheck)) {

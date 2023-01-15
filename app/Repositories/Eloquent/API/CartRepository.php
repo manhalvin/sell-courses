@@ -2,7 +2,6 @@
 namespace App\Repositories\Eloquent\API;
 
 use App\Models\Cart;
-use Illuminate\Support\Facades\Auth;
 
 class CartRepository
 {
@@ -10,28 +9,27 @@ class CartRepository
 
     public function __construct()
     {
-        $this->model = new Cart();
+        $this->model = new Cart;
     }
 
-    public function createOrderDetail($data, $orderId)
-    {
-        $this->model->create([
-            'name' => $data['name'],
-            'price' => $data['price'],
-            'quantify' => $data['qty'],
-            'thumbnail' => $data['thumbnail'],
-            'sub_total' => $data['sub_total'],
-            'user_created' => Auth::user()->name,
-            'order_id' => $orderId,
-            'course_id' => $data['id'],
-        ]);
-    }
-
+    /**
+     * Lấy thông tin giỏ hàng
+     * @param mixed $productId
+     * @param mixed $userId
+     * @return mixed
+     */
     public function getCart($productId, $userId)
     {
-        return $this->model->where('course_id', $productId)->where('user_id', $userId)->first();
+        return $this->model->where('course_id', $productId)
+            ->where('user_id', $userId)->first();
     }
 
+    /**
+     * Xóa khóa học ra khỏi giỏ hàng
+     * @param mixed $id
+     * @param mixed $userId
+     * @return mixed
+     */
     public function deleteCourse($id, $userId)
     {
         return $this->model->where('course_id', $id)
@@ -39,11 +37,21 @@ class CartRepository
             ->delete();
     }
 
+    /**
+     * Lấy thông tin giỏ hàng theo id của user
+     * @param mixed $userId
+     * @return mixed
+     */
     public function getCartByUserId($userId)
     {
         return $this->model->where('user_id', $userId)->get();
     }
 
+    /**
+     *  Thêm khóa học vào giỏ hàng
+     * @param mixed $data
+     * @return mixed
+     */
     public function createCart($data)
     {
         return $this->model->create($data);

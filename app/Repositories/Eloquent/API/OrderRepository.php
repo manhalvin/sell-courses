@@ -14,6 +14,11 @@ class OrderRepository
         $this->model = new Order;
     }
 
+    /**
+     * Tạo đơn hàng
+     * @param mixed $data
+     * @return mixed
+     */
     public function createOrder($data)
     {
         $orderCode = 'IS-' . $this->createOrderId();
@@ -38,6 +43,10 @@ class OrderRepository
         return $orderId;
     }
 
+    /**
+     * Tạo mã đơn hàng
+     * @return string
+     */
     public function createOrderId() {
         do {
             $characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
@@ -50,42 +59,56 @@ class OrderRepository
         return $string;
     }
 
+    /**
+     *  Lấy thông tin đơn hàng theo email
+     * @param mixed $email
+     * @return mixed
+     */
     public function getOrderByEmail($email)
     {
         return $this->model->where('email', $email)->first();
     }
 
+    /**
+     * Lấy danh sách đơn hàng theo id của user
+     * @param mixed $userId
+     * @return mixed
+     */
     public function getOrderList($userId)
     {
         return $this->model->where('user_id', $userId)->get();
     }
 
+    /**
+     * Kiểm tra bản ghi có tồn tại trong database ?
+     * @param mixed $id
+     * @return mixed
+     */
     public function checkRecordExist($id)
     {
         return $this->model->where('id', $id)->exists();
     }
 
+    /**
+     * Lấy thông tin chi tiết của đơn hàng
+     * @param mixed $id
+     * @return mixed
+     */
     public function getById($id)
     {
         return $this->model->find($id);
     }
 
-    public function createCourse($data)
-    {
-        $this->model->title = $data['title'];
-        $this->model->content = $data['content'];
-        $this->model->slug = $data['slug'];
-        if ($data['thumbnail']) {
-            $this->model->thumbnail = $data['thumbnail'];
-        }
-        $this->model->price = $data['price'];
-        $this->model->category_course_id = $data['category_course_id'];
-        $this->model->user_created = Auth::user()->name;
-        $this->model->status = $data['status'];
-        $this->model->save();
-        return $this->model->fresh();
-    }
-
+    /**
+     * Lấy danh sách của đơn hàng
+     * combo: status + filter + search + sort + pagination
+     * @param mixed $status
+     * @param mixed $filters
+     * @param mixed $search
+     * @param mixed $sortArr
+     * @param mixed $perPage
+     * @return mixed
+     */
     public function getList($status, $filters = [], $search = null, $sortArr = null, $perPage = null)
     {
         $query = $this->model->select('*');
@@ -121,24 +144,42 @@ class OrderRepository
         : $query->orderBy($orderBy, $orderType)->get();
     }
 
-
+    /**
+     * Lấy số lượng bản ghi kích hoạt
+     * @return mixed
+     */
     public function countRecordActive()
     {
         return $this->model->count();
     }
 
+    /**
+     * Lấy số lượng bản ghi đã bị xóa mền
+     * @return int|mixed
+     */
     public function countRecordTrash()
     {
         return $this->model->onlyTrashed()->count();
     }
 
 
+    /**
+     * Cập nhật trạng thái đơn hàng
+     * @param mixed $data
+     * @param mixed $id
+     * @return mixed
+     */
     public function updateOrder($data, $id)
     {
         return $this->model->find($id)
             ->update(['status' => $data['status']]);
     }
 
+    /**
+     * Xóa tạm thời đơn hàng
+     * @param mixed $id
+     * @return mixed
+     */
     public function deleteData($id)
     {
         $this->model->find($id)->update([
@@ -148,6 +189,11 @@ class OrderRepository
             ->delete();
     }
 
+    /**
+     * Xóa hàng loạt đơn hàng (trạng thái tạm thời)
+     * @param mixed $listCheck
+     * @return int
+     */
     public function destroyData($listCheck)
     {
         $this->model->WhereIn('id', $listCheck)->update([
@@ -156,16 +202,31 @@ class OrderRepository
         return $this->model->destroy($listCheck);
     }
 
+    /**
+     * Khôi phục bản ghi đã bị xóa mềm
+     * @param mixed $listCheck
+     * @return mixed
+     */
     public function restoreData($listCheck)
     {
         return $this->model->onlyTrashed()->whereIn('id', $listCheck)->restore();
     }
 
+    /**
+     * Xóa vĩnh viễn bản ghi
+     * @param mixed $listCheck
+     * @return mixed
+     */
     public function forceDelete($listCheck)
     {
         return $this->model->onlyTrashed()->whereIn('id', $listCheck)->forceDelete();
     }
 
+    /**
+     * Cập nhật trạng thái đơn hàng từ ẩn sang hiện
+     * @param mixed $listCheck
+     * @return mixed
+     */
     public function approveRecord($listCheck)
     {
         return $this->model->whereIn('id', $listCheck)->update([
@@ -173,6 +234,11 @@ class OrderRepository
         ]);
     }
 
+    /**
+     * Cập nhật trạng thái đơn hàng từ hiện sang ẩn
+     * @param mixed $listCheck
+     * @return mixed
+     */
     public function incognitoRecord($listCheck)
     {
         return $this->model->whereIn('id', $listCheck)->update([
@@ -180,6 +246,11 @@ class OrderRepository
         ]);
     }
 
+    /**
+     * Kiểm tra nhiều bản ghi có tồn tại trong database ?
+     * @param mixed $listCheck
+     * @return mixed
+     */
     public function checkManyRecordExist($listCheck)
     {
         return $this->model->whereIn('id', $listCheck)->exists();

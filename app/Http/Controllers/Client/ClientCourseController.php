@@ -5,10 +5,9 @@ namespace App\Http\Controllers\Client;
 use App\Http\Controllers\API\BaseController;
 use App\Http\Resources\API\CourseResource;
 use App\Services\API\CourseService;
-use Gloudemans\Shoppingcart\Facades\Cart;
 use Illuminate\Http\Request;
 
-class CourseController extends BaseController
+class ClientCourseController extends BaseController
 {
     protected $model;
 
@@ -17,6 +16,11 @@ class CourseController extends BaseController
         $this->model = new CourseService;
     }
 
+    /**
+     * Hiển thị danh sách khóa học
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function index(Request $request)
     {
         $search = "";
@@ -33,6 +37,11 @@ class CourseController extends BaseController
         }
     }
 
+    /**
+     * Hiển thị thông tin chi tiết khóa học
+     * @param mixed $id
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function show($id)
     {
         try {
@@ -43,6 +52,12 @@ class CourseController extends BaseController
         }
     }
 
+    /**
+     * Hiển thi danh sách khóa học theo danh mục khóa học
+     * @param mixed $id
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function getCoursesByCategory($id, Request $request)
     {
         $search = "";
@@ -60,6 +75,11 @@ class CourseController extends BaseController
         }
     }
 
+    /**
+     * Đăng ký học online
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function enroll(Request $request)
     {
         $courseId = $request->input('course_id');
@@ -72,6 +92,11 @@ class CourseController extends BaseController
         }
     }
 
+    /**
+     * Hủy đăng ký học online
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function unenrolled(Request $request)
     {
         $courseId = $request->input('course_id');

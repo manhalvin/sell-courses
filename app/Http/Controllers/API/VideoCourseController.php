@@ -11,15 +11,15 @@ use App\Http\Requests\API\VideoCourse\UpdateVideoCourseRequest;
 
 class VideoCourseController extends BaseController
 {
-    protected $model;
+    protected $videoCourseService;
 
     public function __construct()
     {
-        $this->model = new VideoCourseService;
+        $this->videoCourseService = new VideoCourseService;
     }
 
     /**
-     *  Lưu dữ liêu video khóa học
+     *  Thêm video khóa học
      * @param CategoryCourseRequest $request
      * @return \Illuminate\Http\JsonResponse
      */
@@ -30,7 +30,7 @@ class VideoCourseController extends BaseController
         $video = $request->file('video');
 
         try {
-            $result = $this->model->handleSaveData($inputData, $video, $hasFile, $courseId);
+            $result = $this->videoCourseService->handleSaveData($inputData, $video, $hasFile, $courseId);
             return $this->sendResponse($result, 'Success ! Create data success !');
         } catch (\Exception$e) {
             return $this->sendError($e->getMessage(), null);
@@ -63,9 +63,9 @@ class VideoCourseController extends BaseController
         $sortType = $request->input('sort-type');
 
         try {
-            $result = $this->model->getAll($status, $search, $sortBy, $sortType, $courseId);
-            $countActive = $this->model->countRecordActive();
-            $countTrash = $this->model->countRecordTrash();
+            $result = $this->videoCourseService->getAll($status, $search, $sortBy, $sortType, $courseId);
+            $countActive = $this->videoCourseService->countRecordActive();
+            $countTrash = $this->videoCourseService->countRecordTrash();
             $success = [
                 'course' => $result,
                 'count_active' => $countActive,
@@ -86,7 +86,7 @@ class VideoCourseController extends BaseController
     public function show($id)
     {
         try {
-            $result = $this->model->getById($id);
+            $result = $this->videoCourseService->getById($id);
             $result = new VideoCourseResource($result);
             return $this->sendResponse($result, 'Success ! Fetch data success !');
         } catch (\Exception$e) {
@@ -94,6 +94,12 @@ class VideoCourseController extends BaseController
         }
     }
 
+    /**
+     * Cập nhật video khóa học
+     * @param UpdateVideoCourseRequest $request
+     * @param mixed $id
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function update(UpdateVideoCourseRequest $request, $id)
     {
         $data = $request->all();
@@ -101,30 +107,41 @@ class VideoCourseController extends BaseController
         $video = $request->file('video');
 
         try {
-            $this->model->handleUpdateData($data, $id, $hasFile, $video);
+            $this->videoCourseService->handleUpdateData($data, $id, $hasFile, $video);
             return $this->sendResponse([], 'Update Data Success !');
         } catch (\Exception$e) {
             return $this->sendError($e->getMessage(), null);
         }
     }
 
+    /**
+     * Xóa tạm thời video khóa học
+     * @param mixed $id
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function destroy($id)
     {
         try {
-            $this->model->handleDeleteData($id);
+            $this->videoCourseService->handleDeleteData($id);
             return $this->sendResponse([], 'Delete Data Success !');
         } catch (\Exception$e) {
             return $this->sendError($e->getMessage(), null);
         }
     }
 
+    /**
+     * Thực hiện các hành động như: xóa tạm thời, xóa vĩnh viễn
+     * khôi phục hàng loạt bản ghi
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function action(Request $request)
     {
         $listCheck = $request->input('list_check');
         $action = $request->input('action');
 
         try {
-            $result = $this->model->handleDataAction($listCheck, $action);
+            $result = $this->videoCourseService->handleDataAction($listCheck, $action);
             return $this->sendResponse([], $result);
         } catch (\Exception$e) {
             return $this->sendError($e->getMessage(), null);

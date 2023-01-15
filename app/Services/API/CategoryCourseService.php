@@ -16,7 +16,7 @@ class CategoryCourseService extends BaseService
     }
 
     /**
-     * Xử lý lưu dữ liệu danh muc khóa hoc
+     * Xử lý thêm danh muc khóa hoc
      * @param mixed $inputData
      * @param mixed $thumbnail
      * @param mixed $hasFile
@@ -47,6 +47,7 @@ class CategoryCourseService extends BaseService
 
     /**
      * Xử lý lấy danh sách danh muc khóa học
+     * combo: filter status + search + sort by + pagination
      * @param mixed $status
      * @param mixed $search
      * @param mixed $sortBy
@@ -123,7 +124,7 @@ class CategoryCourseService extends BaseService
     }
 
     /**
-     * Xử lý lưu dữ liêu danh mục khóa hoc
+     * Xử lý Cập nhật danh mục khóa hoc
      * @param mixed $data
      * @param mixed $id
      * @param mixed $hasFile
@@ -175,7 +176,7 @@ class CategoryCourseService extends BaseService
     }
 
     /**
-     * Xử lý các hành đông như xóa tạm thời , xóa vĩnh viễn , khôi phuc bản ghi
+     * Xử lý các hành đông như xóa tạm thời , xóa vĩnh viễn , khôi phuc nhiều bản ghi
      * @param mixed $listCheck
      * @param mixed $action
      * @throws \Exception

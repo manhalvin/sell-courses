@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "f52ff8df07dd1cd86c4b09839fe5915d",
+    "content-hash": "2c62c9d4ac90a2a81373e0625d0d92b9",
     "packages": [
         {
             "name": "asm89/stack-cors",
@@ -3311,6 +3311,65 @@
             "time": "2022-12-31T22:20:34+00:00"
         },
         {
+            "name": "spatie/laravel-package-tools",
+            "version": "1.12.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/spatie/laravel-package-tools.git",
+                "reference": "09f80fa240d44fafb1c70657c74ee44ffa929357"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/spatie/laravel-package-tools/zipball/09f80fa240d44fafb1c70657c74ee44ffa929357",
+                "reference": "09f80fa240d44fafb1c70657c74ee44ffa929357",
+                "shasum": ""
+            },
+            "require": {
+                "illuminate/contracts": "^7.0|^8.0|^9.0",
+                "php": "^7.4|^8.0"
+            },
+            "require-dev": {
+                "mockery/mockery": "^1.4",
+                "orchestra/testbench": "^5.0|^6.23|^7.0",
+                "phpunit/phpunit": "^9.4",
+                "spatie/test-time": "^1.2"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Spatie\\LaravelPackageTools\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Freek Van der Herten",
+                    "email": "freek@spatie.be",
+                    "role": "Developer"
+                }
+            ],
+            "description": "Tools for creating Laravel packages",
+            "homepage": "https://github.com/spatie/laravel-package-tools",
+            "keywords": [
+                "laravel-package-tools",
+                "spatie"
+            ],
+            "support": {
+                "issues": "https://github.com/spatie/laravel-package-tools/issues",
+                "source": "https://github.com/spatie/laravel-package-tools/tree/1.12.1"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/spatie",
+                    "type": "github"
+                }
+            ],
+            "time": "2022-06-28T14:29:26+00:00"
+        },
+        {
             "name": "swiftmailer/swiftmailer",
             "version": "v6.3.0",
             "source": {
@@ -5780,6 +5839,68 @@
                 "source": "https://github.com/webmozarts/assert/tree/1.11.0"
             },
             "time": "2022-06-03T18:03:27+00:00"
+        },
+        {
+            "name": "yaza/laravel-repository-service",
+            "version": "V1.5.15",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/yaza-putu/laravel-repository-with-service.git",
+                "reference": "7152b54cf81a330d96952861601a3b5afc7edd83"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/yaza-putu/laravel-repository-with-service/zipball/7152b54cf81a330d96952861601a3b5afc7edd83",
+                "reference": "7152b54cf81a330d96952861601a3b5afc7edd83",
+                "shasum": ""
+            },
+            "require": {
+                "illuminate/contracts": "^8.37",
+                "php": "^7.4|^8.0",
+                "spatie/laravel-package-tools": "^1.4.3"
+            },
+            "require-dev": {
+                "brianium/paratest": "^6.2",
+                "nunomaduro/collision": "^5.3",
+                "orchestra/testbench": "^6.15",
+                "phpunit/phpunit": "^9.3",
+                "spatie/laravel-ray": "^1.9",
+                "vimeo/psalm": "^4.4"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "LaravelEasyRepository\\LaravelEasyRepositoryServiceProvider",
+                        "LaravelEasyRepository\\RepositoryServiceProvider"
+                    ],
+                    "aliases": {
+                        "LaravelEasyRepository": "LaravelEasyRepository\\LaravelEasyRepositoryFacade"
+                    }
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "LaravelEasyRepository\\": "src",
+                    "LaravelEasyRepository\\Database\\Factories\\": "database/factories"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "description": "Simple repository, service pattern for laravel",
+            "homepage": "https://github.com/yaza-putu/laravel-repository-with-service.git",
+            "keywords": [
+                "laravel",
+                "laravel-repository",
+                "laravel-repository-service"
+            ],
+            "support": {
+                "issues": "https://github.com/yaza-putu/laravel-repository-with-service/issues",
+                "source": "https://github.com/yaza-putu/laravel-repository-with-service/tree/V1.5.15"
+            },
+            "time": "2021-12-28T12:48:03+00:00"
         }
     ],
     "packages-dev": [

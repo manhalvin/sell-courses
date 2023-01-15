@@ -29,8 +29,8 @@ class VideoCourseRequest extends FormRequest
             'title' => 'required|unique:course_episodes,title',
             'content' => 'required|unique:course_episodes,content',
             'episodes' => 'required|integer',
-            'video' => 'required|mimes:mpeg,ogg,mp4,webm,3gp,mov,flv,avi,wmv,ts|max:100040',
-            // 'video.*' => 'mimes:mpeg,ogg,mp4,webm,3gp,mov,flv,avi,wmv,ts|max:100040',
+            'video' => 'required',
+            'video.*' => 'mimes:mpeg,ogg,mp4,webm,3gp,mov,flv,avi,wmv,ts|max:100040',
             'course_id' => 'required|integer|exists:courses,id',
             'status' => 'required|integer|between:0,1',
         ];

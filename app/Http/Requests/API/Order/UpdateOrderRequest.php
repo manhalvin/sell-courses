@@ -3,6 +3,8 @@
 namespace App\Http\Requests\API\Order;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Contracts\Validation\Validator;
+use Illuminate\Http\Exceptions\HttpResponseException;
 
 class UpdateOrderRequest extends FormRequest
 {
@@ -13,7 +15,7 @@ class UpdateOrderRequest extends FormRequest
      */
     public function authorize()
     {
-        return false;
+        return true;
     }
 
     /**
@@ -24,7 +26,16 @@ class UpdateOrderRequest extends FormRequest
     public function rules()
     {
         return [
-            //
+            'status' => 'required'
         ];
+    }
+
+    public function failedValidation(Validator $validator)
+    {
+        throw new HttpResponseException(response()->json([
+            'success'   => false,
+            'message'   => 'Validate Failed !',
+            'data'      => $validator->errors()
+        ]));
     }
 }

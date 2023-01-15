@@ -70,6 +70,11 @@ class AuthService extends BaseService implements AuthServiceInterface
 
     }
 
+    /**
+     * Tạo mã OTP
+     * @param mixed $email
+     * @return mixed
+     */
     public function generateOtp($email)
     {
         $checkEmailExist = $this->userRepository->checkEmailExist($email);
@@ -125,7 +130,7 @@ class AuthService extends BaseService implements AuthServiceInterface
     }
 
     /**
-     * Link xác thực tài khoản thời gian hết hạn
+     * Kiểm tra link xác thực email đã hết hiệu lực chưa ? 
      * @param mixed $regulateTime
      * @return bool
      */

@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\API\BaseController;
 use App\Http\Requests\API\Client\ProfileRequest;
 
-class UserController extends BaseController
+class ClientUserController extends BaseController
 {
     protected $model;
 
@@ -17,6 +17,11 @@ class UserController extends BaseController
         $this->model = new UserService;
     }
 
+    /**
+     * Cập nhật thông tin cá nhân
+     * @param ProfileRequest $request
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function updateProfile(ProfileRequest $request)
     {
         $userId = Auth::user()->id;
@@ -34,6 +39,10 @@ class UserController extends BaseController
         }
     }
 
+    /**
+     * Hiển thị thông tin chi tiết của user đang đăng nhập
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function infoProfile()
     {
         $userId = Auth::user()->id;

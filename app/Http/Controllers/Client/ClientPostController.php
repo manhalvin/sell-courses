@@ -7,7 +7,7 @@ use App\Services\API\PostService;
 use App\Http\Resources\API\PostResource;
 use App\Http\Controllers\API\BaseController;
 
-class PostController extends BaseController
+class ClientPostController extends BaseController
 {
     protected $model;
 
@@ -16,6 +16,11 @@ class PostController extends BaseController
         $this->model = new PostService;
     }
 
+    /**
+     * Hiển thị danh sách bài viết
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function index(Request $request)
     {
         $search = "";
@@ -32,6 +37,11 @@ class PostController extends BaseController
         }
     }
 
+    /**
+     * Hiển thị thông tin chi tiết post
+     * @param mixed $id
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function show($id)
     {
         try {

@@ -17,7 +17,7 @@ class PostService extends BaseService
     }
 
     /**
-     * Xử lý lưu dữ liệu khóa hoc
+     * Xử lý thêm bài viết
      * @param mixed $inputData
      * @param mixed $thumbnail
      * @param mixed $hasFile
@@ -48,6 +48,7 @@ class PostService extends BaseService
 
     /**
      * Xử lý lấy danh sách posts
+     * combo: status + search + sort + pagination
      * @param mixed $status
      * @param mixed $search
      * @param mixed $sortBy
@@ -89,6 +90,12 @@ class PostService extends BaseService
         return PostResource::collection($result);
     }
 
+    /**
+     * Lấy danh sách bài viết
+     * @param mixed $search
+     * @throws \Exception
+     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
+     */
     public function getPostList($search)
     {
         $result = $this->model->getPostList( $search, config('services.PER_PAGE'));
@@ -98,16 +105,30 @@ class PostService extends BaseService
         return PostResource::collection($result);
     }
 
+    /**
+     * Lấy số lượng bản ghi kích hoạt
+     * @return mixed
+     */
     public function countRecordActive()
     {
         return $this->model->countRecordActive();
     }
 
+    /**
+     * Lấy số lượng bản ghi đã bị xóa mềm
+     * @return int|mixed
+     */
     public function countRecordTrash()
     {
         return $this->model->countRecordTrash();
     }
 
+    /**
+     * Lấy thông tin chi tiết bài post
+     * @param mixed $id
+     * @throws \Exception
+     * @return mixed
+     */
     public function getById($id)
     {
         $item = $this->model->checkRecordExist($id);
@@ -118,6 +139,15 @@ class PostService extends BaseService
         return $model;
     }
 
+    /**
+     * Xử lý cập nhật bài viết
+     * @param mixed $data
+     * @param mixed $id
+     * @param mixed $hasFile
+     * @param mixed $thumbnail
+     * @throws \Exception
+     * @return mixed
+     */
     public function handleUpdateData($data, $id, $hasFile, $thumbnail)
     {
         $item = $this->model->checkRecordExist($id);
@@ -144,6 +174,12 @@ class PostService extends BaseService
         return $result;
     }
 
+    /**
+     * Xử lý xóa mềm bản ghi
+     * @param mixed $id
+     * @throws \Exception
+     * @return mixed
+     */
     public function handleDeleteData($id)
     {
         $item = $this->model->checkRecordExist($id);
@@ -159,6 +195,13 @@ class PostService extends BaseService
         return $result;
     }
 
+    /**
+     * Xử lý các hành động như xóa mềm, xóa vĩnh viễn , khôi phục nhiều bản ghi
+     * @param mixed $listCheck
+     * @param mixed $action
+     * @throws \Exception
+     * @return string
+     */
     public function handleDataAction($listCheck, $action)
     {
         if (empty($listCheck)) {
@@ -204,11 +247,18 @@ class PostService extends BaseService
         }
     }
 
+
+    /**
+     * Xử lý upload nhiều hình ảnh (post)
+     * @param mixed $images
+     * @param mixed $postId
+     * @throws \Exception
+     * @return void
+     */
     public function handleUploadMultipleImagePost($images, $postId)
     {
         $imageErrors = [];
         try {
-
             foreach ($images as $image) {
                 $name = time() . rand(1, 99) . '.' . $image->getClientOriginalExtension();
                 $image->move('image/multi/posts', $name);
@@ -222,17 +272,16 @@ class PostService extends BaseService
 
                 $imageErrors[] = $pathImage;
                 $this->model->saveMultipleImagePost($data);
+
             }
 
         } catch (\Exception$e) {
-
             foreach ($imageErrors as $imageError) {
-                if (File::exists(public_path($imageError))) {
+                if (File::exists($imageError)) {
                     unlink($imageError);
                 }
             }
             throw new \Exception('Error ! Upload Multiple Image Post No Success', 1);
-
         }
 
     }
