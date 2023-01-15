@@ -19,7 +19,7 @@ class PostController extends BaseController
     }
 
     /**
-     *  Lưu dữ liêu post
+     *  Thêm bài viết
      * @param CategoryCourseRequest $request
      * @return \Illuminate\Http\JsonResponse
      */
@@ -67,7 +67,7 @@ class PostController extends BaseController
             $countActive = $this->model->countRecordActive();
             $countTrash = $this->model->countRecordTrash();
             $success = [
-                'course' => $result,
+                'post' => $result,
                 'count_active' => $countActive,
                 'count_trash' => $countTrash,
                 'list_action' => $listAction
@@ -94,6 +94,12 @@ class PostController extends BaseController
         }
     }
 
+    /**
+     * Cập nhật bài viết
+     * @param UpdatePostRequest $request
+     * @param mixed $id
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function update(UpdatePostRequest $request, $id)
     {
         $data = $request->all();
@@ -108,6 +114,11 @@ class PostController extends BaseController
         }
     }
 
+    /**
+     * Xóa mềm bài viết
+     * @param mixed $id
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function destroy($id)
     {
         try {
@@ -118,6 +129,12 @@ class PostController extends BaseController
         }
     }
 
+    /**
+     * Thực hiện các hành động như: xóa tạm thời, xóa vĩnh viễn
+     * khôi phục hàng loạt bản ghi
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function action(Request $request)
     {
         $listCheck = $request->input('list_check');
@@ -131,6 +148,11 @@ class PostController extends BaseController
         }
     }
 
+    /**
+     * Upload nhiều ảnh (posts)
+     * @param MultipleImagePostRequest $request
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function uploadImage(MultipleImagePostRequest $request)
     {
         $images = $request->file('image');

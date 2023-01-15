@@ -19,8 +19,8 @@ class CourseController extends BaseController
     }
 
     /**
-     *  Lưu dữ liêu danh mục khóa học
-     * @param CategoryCourseRequest $request
+     *  Lưu dữ liêu khóa học
+     * @param CourseRequest $request
      * @return \Illuminate\Http\JsonResponse
      */
     public function store(CourseRequest $request)
@@ -38,7 +38,7 @@ class CourseController extends BaseController
     }
 
     /**
-     * Hiển thị danh sách danh muc khóa hoc
+     * Hiển thị danh sách khóa hoc
      * @param Request $request
      * @return \Illuminate\Http\JsonResponse
      */
@@ -79,7 +79,7 @@ class CourseController extends BaseController
     }
 
     /**
-     *  Hiển thị thông tin chi tiết danh muc khóa hoc
+     *  Hiển thị thông tin chi tiết khóa hoc
      * @param mixed $id
      * @return \Illuminate\Http\JsonResponse
      */
@@ -94,6 +94,12 @@ class CourseController extends BaseController
         }
     }
 
+    /**
+     * Cập nhật khóa học
+     * @param UpdateCourseRequest $request
+     * @param mixed $id
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function update(UpdateCourseRequest $request, $id)
     {
         $data = $request->all();
@@ -108,6 +114,11 @@ class CourseController extends BaseController
         }
     }
 
+    /**
+     * Xóa mềm bản ghi
+     * @param mixed $id
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function destroy($id)
     {
         try {
@@ -118,6 +129,12 @@ class CourseController extends BaseController
         }
     }
 
+    /**
+     * Thực hiện các hành động như: xóa tạm thời, xóa vĩnh viễn
+     * khôi phục hàng loạt bản ghi
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function action(Request $request)
     {
         $listCheck = $request->input('list_check');

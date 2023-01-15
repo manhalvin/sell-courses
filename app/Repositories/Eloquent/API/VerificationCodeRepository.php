@@ -24,6 +24,12 @@ class VerificationCodeRepository implements VerificationCodeRepositoryInterface
         return $this->verificationCode->where('user_id', $userId)->latest()->first();
     }
 
+    /**
+     * Kiểm tra mã OTP tồn tại bởi user id
+     * @param mixed $userId
+     * @param mixed $otp
+     * @return mixed
+     */
     public function checkOtpExist($userId, $otp)
     {
         return $this->verificationCode->where('user_id', $userId)
@@ -45,6 +51,10 @@ class VerificationCodeRepository implements VerificationCodeRepositoryInterface
         ]);
     }
 
+    /**
+     * Cập nhật thời gian hiệu lực mã OTP
+     * @return bool
+     */
     public function  updateExpireAt()
     {
         return $this->verificationCode->update([

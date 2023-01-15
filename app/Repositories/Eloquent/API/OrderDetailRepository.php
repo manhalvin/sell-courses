@@ -14,6 +14,12 @@ class OrderDetailRepository
         $this->model = new OrderDetail;
     }
 
+    /**
+     * Tạo đơn hàng chi tiết
+     * @param mixed $data
+     * @param mixed $orderId
+     * @return void
+     */
     public function createOrderDetail($data, $orderId)
     {
         $this->model->create([
@@ -28,11 +34,21 @@ class OrderDetailRepository
         ]);
     }
 
+    /**
+     * Kiển tra bản ghi có tồn tại trong database ?
+     * @param mixed $id
+     * @return mixed
+     */
     public function checkRecordExist($id)
     {
         return $this->model->where('order_id', $id)->exists();
     }
 
+    /**
+     * Lấy đơn hàng chi tiết theo id của order
+     * @param mixed $id
+     * @return mixed
+     */
     public function getById($id)
     {
         return $this->model->where('order_id', $id)->get();

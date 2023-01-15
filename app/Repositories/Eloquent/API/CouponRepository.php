@@ -46,6 +46,9 @@ class CouponRepository
             ->where('status', 1)
             ->where('date_end', '>=', $today)
             ->first();
+        if(!$coupon){
+            return false;
+        }
         return $coupon;
     }
 

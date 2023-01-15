@@ -19,7 +19,7 @@ class XssProtection
     {
         $input = $request->all();
         array_walk_recursive($input, function (&$input) {
-            $input = htmlspecialchars(strip_tags($input));
+            $input = htmlspecialchars(strip_tags(trim($input)));
         });
         $request->merge($input);
         return $next($request);

@@ -1,11 +1,11 @@
 <?php
 namespace App\Services\API;
 
-use Laravolt\Avatar\Avatar;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\File;
 use App\Http\Resources\API\UserResource;
 use App\Repositories\Eloquent\API\UserRepository;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\File;
+use Laravolt\Avatar\Avatar;
 
 class UserService extends BaseService
 {
@@ -16,6 +16,17 @@ class UserService extends BaseService
         $this->userRepository = new UserRepository;
     }
 
+    /**
+     * Xử lý lấy danh sách người dùng
+     * combo: status + filter: role + search + sort
+     * @param mixed $status
+     * @param mixed $roleId
+     * @param mixed $search
+     * @param mixed $sortBy
+     * @param mixed $sortType
+     * @throws \Exception
+     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
+     */
     public function getUserList($status, $roleId, $search, $sortBy, $sortType)
     {
         // Lọc trạng thái tài khoản
@@ -23,7 +34,7 @@ class UserService extends BaseService
         if (!empty($status)) {
             if ($status == 'active') {
                 $status = 1;
-            } elseif($status == 'unactive') {
+            } elseif ($status == 'unactive') {
                 $status = 0;
             }
             $filters[] = ['users.status', '=', $status];
@@ -57,13 +68,21 @@ class UserService extends BaseService
         return UserResource::collection($result);
     }
 
+    /**
+     * Xử lý thêm người dùng
+     * @param mixed $data
+     * @param mixed $thumbnail
+     * @param mixed $hasFile
+     * @throws \Exception
+     * @return array
+     */
     public function handleSaveUserData($data, $thumbnail, $hasFile)
     {
         if (!$hasFile) {
             $avatar = new Avatar();
             $data['thumbnail'] = $avatar->create($data['name'])->toBase64();
         } else {
-            $imageName = $thumbnail->getClientOriginalName();
+            $imageName = time() . '.' . $thumbnail->getClientOriginalExtension();
             $thumbnail->move('image/users', $imageName);
             $image = 'image/users/' . $imageName;
             $data['thumbnail'] = $image;
@@ -143,6 +162,12 @@ class UserService extends BaseService
         return $result;
     }
 
+    /**
+     * Xử lý xóa mềm bản ghi
+     * @param mixed $id
+     * @throws \Exception
+     * @return mixed
+     */
     public function handleDeleteUser($id)
     {
         $users = $this->userRepository->getUserAll();
@@ -164,6 +189,13 @@ class UserService extends BaseService
         return $result;
     }
 
+    /**
+     * Xử lý các hành động như xóa mềm, xóa vĩnh viễn, khôi phục bản ghi,....
+     * @param mixed $listCheck
+     * @param mixed $action
+     * @throws \Exception
+     * @return string
+     */
     public function handleUserAction($listCheck, $action)
     {
 
@@ -176,6 +208,13 @@ class UserService extends BaseService
                 unset($listCheck[$k]);
             }
         }
+
+        $newListCheck = array();
+        foreach ($listCheck as $value) {
+            $exploded = explode(",", $value);
+            $newListCheck[] = $exploded;
+        }
+        $listCheck = $newListCheck[0];
 
         if (!empty($listCheck)) {
 

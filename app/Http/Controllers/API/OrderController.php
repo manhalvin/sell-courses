@@ -9,7 +9,7 @@ use App\Http\Resources\API\OrderResource;
 use App\Http\Requests\API\Order\OrderRequest;
 use App\Http\Requests\API\Order\UpdateOrderRequest;
 
-class OrderController extends Controller
+class OrderController extends BaseController
 {
 
     protected $orderService;
@@ -69,14 +69,20 @@ class OrderController extends Controller
     {
         try {
             $result = $this->orderService->getById($id);
-            $result = new OrderResource($result);
+            // $result = new OrderResource($result);
             return $this->sendResponse($result, 'Success ! Fetch data success !');
         } catch (\Exception$e) {
             return $this->sendError($e->getMessage(), null);
         }
     }
 
-    public function update(Request $request, $id)
+    /**
+     * Cập nhật trạng thái đơn hàng
+     * @param OrderRequest $request
+     * @param mixed $id
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function update(OrderRequest $request, $id)
     {
         $data = $request->all();
 
@@ -88,6 +94,11 @@ class OrderController extends Controller
         }
     }
 
+    /**
+     * Xóa mền đơn hàng
+     * @param mixed $id
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function destroy($id)
     {
         try {
@@ -98,6 +109,12 @@ class OrderController extends Controller
         }
     }
 
+    /**
+     * Thực hiện các hành động như: xóa tạm thời, xóa vĩnh viễn
+     * khôi phục hàng loạt bản ghi
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function action(Request $request)
     {
         $listCheck = $request->input('list_check');

@@ -200,7 +200,7 @@ class CourseService extends BaseService
     }
 
     /**
-     * Xử lý xóa bản ghi tạm thời
+     * Xử lý xóa mềm bản ghi
      * @param mixed $id
      * @throws \Exception
      * @return mixed
@@ -273,7 +273,7 @@ class CourseService extends BaseService
     }
 
     /**
-     * Xử lý chức năng đăng ký khóa hoc online
+     * Xử lý chức năng đăng ký 1 khóa hoc online
      * @param mixed $id
      * @throws \Exception
      * @return mixed
@@ -309,6 +309,12 @@ class CourseService extends BaseService
         return $cartItem;
     }
 
+    /**
+     * Xử lý Hủy đăng ký 1 khóa học online
+     * @param mixed $id
+     * @throws \Exception
+     * @return mixed
+     */
     public function handleUnenrolled($id)
     {
         $checkCourseExist = $this->courseRepository->checkRecordExist($id);

@@ -7,34 +7,34 @@ use Illuminate\Support\Facades\Auth;
 
 class CourseRepository
 {
-    protected $model;
+    protected $course;
     protected $categoryCourse;
 
     public function __construct()
     {
-        $this->model = new Course;
+        $this->course = new Course;
         $this->categoryCourse = new CategoryCourse;
     }
 
     /**
      * Tạo khóa học
      * @param mixed $data
-     * @return \Illuminate\Database\Eloquent\Model|null
+     * @return \Illuminate\Database\Eloquent\course|null
      */
     public function createCourse($data)
     {
-        $this->model->title = $data['title'];
-        $this->model->content = $data['content'];
-        $this->model->slug = $data['slug'];
+        $this->course->title = $data['title'];
+        $this->course->content = $data['content'];
+        $this->course->slug = $data['slug'];
         if ($data['thumbnail']) {
-            $this->model->thumbnail = $data['thumbnail'];
+            $this->course->thumbnail = $data['thumbnail'];
         }
-        $this->model->price = $data['price'];
-        $this->model->category_course_id = $data['category_course_id'];
-        $this->model->user_created = Auth::user()->name;
-        $this->model->status = $data['status'];
-        $this->model->save();
-        return $this->model->fresh();
+        $this->course->price = $data['price'];
+        $this->course->category_course_id = $data['category_course_id'];
+        $this->course->user_created = Auth::user()->name;
+        $this->course->status = $data['status'];
+        $this->course->save();
+        return $this->course->fresh();
     }
 
     /**
@@ -48,7 +48,7 @@ class CourseRepository
      */
     public function getList($status, $filters = [], $search = null, $sortArr = null, $perPage = null)
     {
-        $query = $this->model->select('*');
+        $query = $this->course->select('*');
 
         if ($status == 'trash') {
             $query->onlyTrashed()->latest();
@@ -87,7 +87,7 @@ class CourseRepository
      */
     public function getCourseList($search = null, $perPage = null)
     {
-        $query = $this->model->select('*');
+        $query = $this->course->select('*');
 
         $orderBy = 'created_at';
         $orderType = 'desc';
@@ -122,7 +122,7 @@ class CourseRepository
      */
     public function getCoursesByCategory($id, $search = null, $perPage = null)
     {
-        $query = $this->model
+        $query = $this->course
             ->where('category_course_id', $id);
 
         if (!empty($search)) {
@@ -146,7 +146,7 @@ class CourseRepository
      */
     public function countRecordActive()
     {
-        return $this->model->count();
+        return $this->course->count();
     }
 
     /**
@@ -155,7 +155,7 @@ class CourseRepository
      */
     public function countRecordTrash()
     {
-        return $this->model->onlyTrashed()->count();
+        return $this->course->onlyTrashed()->count();
     }
 
     /**
@@ -165,13 +165,13 @@ class CourseRepository
      */
     public function checkRecordExist($id)
     {
-        return $this->model->where('id', $id)->exists();
+        return $this->course->where('id', $id)->exists();
     }
 
     // Thông tin chi tiêt khóa hoc
     public function getById($id)
     {
-        return $this->model->find($id);
+        return $this->course->find($id);
     }
 
     /**
@@ -182,7 +182,7 @@ class CourseRepository
      */
     public function updateCourse($data, $id)
     {
-        return $this->model->find($id)
+        return $this->course->find($id)
             ->update($data);
     }
 
@@ -193,10 +193,10 @@ class CourseRepository
      */
     public function deleteData($id)
     {
-        $this->model->find($id)->update([
+        $this->course->find($id)->update([
             'user_deleted' => Auth::user()->name,
         ]);
-        return $this->model->find($id)
+        return $this->course->find($id)
             ->delete();
     }
 
@@ -207,10 +207,10 @@ class CourseRepository
      */
     public function destroyData($listCheck)
     {
-        $this->model->WhereIn('id', $listCheck)->update([
+        $this->course->WhereIn('id', $listCheck)->update([
             'user_deleted' => Auth::user()->name,
         ]);
-        return $this->model->destroy($listCheck);
+        return $this->course->destroy($listCheck);
     }
 
     /**
@@ -222,7 +222,7 @@ class CourseRepository
      */
     public function restoreData($listCheck)
     {
-        return $this->model->withTrashed()->whereIn('id', $listCheck)->restore();
+        return $this->course->withTrashed()->whereIn('id', $listCheck)->restore();
     }
 
     /**
@@ -232,13 +232,13 @@ class CourseRepository
      */
     public function forceDelete($listCheck)
     {
-        return $this->model->withTrashed()->whereIn('id', $listCheck)->forceDelete();
+        return $this->course->withTrashed()->whereIn('id', $listCheck)->forceDelete();
     }
 
     // Câp nhât trang thái bản ghi: phê duyêt
     public function approveRecord($listCheck)
     {
-        return $this->model->whereIn('id', $listCheck)->update([
+        return $this->course->whereIn('id', $listCheck)->update([
             'status' => 1,
         ]);
     }
@@ -246,7 +246,7 @@ class CourseRepository
     // Câp nhât trang thái bản ghi: chưa phê duyêt
     public function incognitoRecord($listCheck)
     {
-        return $this->model->whereIn('id', $listCheck)->update([
+        return $this->course->whereIn('id', $listCheck)->update([
             'status' => 0,
         ]);
     }
@@ -258,6 +258,6 @@ class CourseRepository
      */
     public function checkManyRecordExist($listCheck)
     {
-        return $this->model->whereIn('id', $listCheck)->exists();
+        return $this->course->whereIn('id', $listCheck)->exists();
     }
 }

@@ -1,14 +1,18 @@
 <?php
 
-use App\Http\Controllers\API\AuthController;
-use App\Http\Controllers\API\CategoryCourseController;
-use App\Http\Controllers\API\CourseController;
-use App\Http\Controllers\API\OrderController;
-use App\Http\Controllers\API\PostController;
-use App\Http\Controllers\API\UserController;
-use App\Http\Controllers\API\VideoCourseController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\API\AuthController;
+use App\Http\Controllers\API\PostController;
+use App\Http\Controllers\API\UserController;
+use App\Http\Controllers\API\OrderController;
+use App\Http\Controllers\API\CourseController;
+use App\Http\Controllers\API\VideoCourseController;
+use App\Http\Controllers\Client\ClientPostController;
+use App\Http\Controllers\Client\ClientUserController;
+use App\Http\Controllers\API\CategoryCourseController;
+use App\Http\Controllers\Client\ClientOrderController;
+use App\Http\Controllers\Client\ClientCourseController;
 
 /*
 |--------------------------------------------------------------------------
@@ -25,10 +29,14 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-// Route: Auth
+/**
+ *  1. Route Auth
+ */
 Route::prefix('auth/')->name('auth.')->group(function () {
+
     Route::controller(AuthController::class)->group(function () {
         Route::post('register', 'register')->name('register');
+        Route::get('register/activate/{uuid}', 'verifyAccount')->name('register_activate');
         Route::post('otp/verification/{user_id}', 'verifyWithOtp')->name('otp.verification');
         Route::post('login', 'login')->name('login');
         Route::put('change-password', 'changePassword')->name('change_password')->middleware('auth:sanctum');
@@ -41,6 +49,10 @@ Route::prefix('auth/')->name('auth.')->group(function () {
 
 });
 
+
+/**
+ *  2. Route Admin
+ */
 Route::prefix('admin/')->middleware('auth:sanctum','CheckRole')->group(function () {
 
     // Route admin: category courses
@@ -94,7 +106,7 @@ Route::prefix('admin/')->middleware('auth:sanctum','CheckRole')->group(function 
             Route::post('{course_id}/video', 'store')->name('store');
             Route::get('video/{id}', 'show')->name('show');
             Route::post('video/action', 'action')->name('action');
-            Route::put('video/{id}', 'update')->name('update');
+            Route::post('video/{id}', 'update')->name('update');
             Route::delete('video/{id}', 'destroy')->name('destroy');
         });
     });
@@ -134,10 +146,14 @@ Route::prefix('admin/')->middleware('auth:sanctum','CheckRole')->group(function 
     });
 });
 
+
+/**
+ *  3. Route Client
+ */
 Route::prefix('client')->name('client.')->middleware('auth:sanctum')->group(function () {
 
     // Route Client: Post
-    Route::controller(App\Http\Controllers\Client\PostController::class)->group(function () {
+    Route::controller(ClientPostController::class)->group(function () {
         Route::prefix('posts')->name('post.')->group(function () {
             Route::get('/', 'index')->name('index');
             Route::get('/detail/{id}', 'show')->name('show');
@@ -145,7 +161,7 @@ Route::prefix('client')->name('client.')->middleware('auth:sanctum')->group(func
     });
 
     // Route Client: Course
-    Route::controller(App\Http\Controllers\Client\CourseController::class)->group(function () {
+    Route::controller(ClientCourseController::class)->group(function () {
         Route::prefix('courses')->name('courses.')->group(function () {
             Route::get('/', 'index')->name('index');
             Route::get('/category/{category_id}', 'getCoursesByCategory')->name('category');
@@ -156,7 +172,7 @@ Route::prefix('client')->name('client.')->middleware('auth:sanctum')->group(func
     });
 
     // Route Client: User
-    Route::controller(App\Http\Controllers\Client\UserController::class)->group(function () {
+    Route::controller(ClientUserController::class)->group(function () {
         Route::prefix('users/')->name('users.')->group(function () {
             Route::prefix('profile')->name('profile.')->group(function () {
                 Route::post('/', 'updateProfile')->name('update');
@@ -166,7 +182,7 @@ Route::prefix('client')->name('client.')->middleware('auth:sanctum')->group(func
     });
 
     // Route Client: Order
-    Route::controller(App\Http\Controllers\Client\OrderController::class)->group(function () {
+    Route::controller(ClientOrderController::class)->group(function () {
         Route::prefix('orders/')->name('orders.')->group(function () {
             Route::get('/', 'index')->name('index');
             Route::get('/{order_id}', 'show')->name('show');

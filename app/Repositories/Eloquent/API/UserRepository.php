@@ -65,6 +65,11 @@ class UserRepository implements UserRepositoryInterface
         return $this->user->where('email', $email)->exists();
     }
 
+    /**
+     * Lấy danh sách người dùng theo email
+     * @param mixed $email
+     * @return mixed
+     */
     public function getUserByEmail($email)
     {
         $result = $this->user
@@ -86,6 +91,11 @@ class UserRepository implements UserRepositoryInterface
         return $result;
     }
 
+    /**
+     * Cập nhật trạng thái người dùng theo id của user
+     * @param mixed $id
+     * @return mixed
+     */
     public function updateUserStatusById($id)
     {
         $result = $this->user
@@ -104,6 +114,11 @@ class UserRepository implements UserRepositoryInterface
         return $this->user->create($userData)->id;
     }
 
+    /**
+     * Lấy thông tin chi tiết của người dùng
+     * @param mixed $userId
+     * @return mixed
+     */
     public function whereId($userId)
     {
         return $this->user->whereId($userId)->first();
@@ -121,6 +136,16 @@ class UserRepository implements UserRepositoryInterface
             ->update(['password' => $passwordNew]);
     }
 
+    /**
+     * Lấy danh sách người dùng
+     *  combo: status + filter + search + sort + pagination
+     * @param mixed $status
+     * @param mixed $filters
+     * @param mixed $search
+     * @param mixed $sortArr
+     * @param mixed $perPage
+     * @return mixed
+     */
     public function getUserList($status, $filters = [], $search = null, $sortArr = null, $perPage = null)
     {
         $users = $this->user
@@ -139,7 +164,6 @@ class UserRepository implements UserRepositoryInterface
 
         if (!empty($filters)) {
             $users = $users->where($filters);
-            // $users->whereNotNull('users.deleted_at');
         }
 
         if (!empty($search)) {
@@ -155,6 +179,12 @@ class UserRepository implements UserRepositoryInterface
 
     }
 
+    /**
+     * Cập nhật thông tin người dùng
+     * @param mixed $data
+     * @param mixed $user
+     * @return mixed
+     */
     public function updateUser($data, $user)
     {
         return $user = $this->user->find($user)
@@ -172,11 +202,21 @@ class UserRepository implements UserRepositoryInterface
             ->delete();
     }
 
+    /**
+     * Xóa mềm người dùng
+     * @param mixed $listCheck
+     * @return int
+     */
     public function userDestroy($listCheck)
     {
         return $this->user->destroy($listCheck);
     }
 
+    /**
+     * Khôi phục bản ghi đã bị xóa mềm
+     * @param mixed $listCheck
+     * @return mixed
+     */
     public function userRestoreTrashed($listCheck)
     {
         return $this->user->withTrashed()->whereIn('id', $listCheck)->restore();
