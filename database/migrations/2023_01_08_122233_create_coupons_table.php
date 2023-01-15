@@ -36,6 +36,8 @@ class CreateCouponsTable extends Migration
 
             $table->integer('status')
                 ->nullable();
+            $table->string('coupon_user')
+                ->nullable();
             $table->string('user_created')
                 ->nullable();
             $table->string('user_updated')

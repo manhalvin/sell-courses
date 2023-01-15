@@ -4,21 +4,21 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateOrderDetailsTable extends Migration
+class CreateCartsTable extends Migration
 {
     /**
-     * Tạo bảng đơn hàng chi tiêt
+     * Tạo bảng giỏ hàng
      *
      * @return void
      */
     public function up()
     {
-        Schema::create('order_details', function (Blueprint $table) {
+        Schema::table('carts', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
+            $table->string('session_id');
+            $table->integer('qty');
+            $table->string('title');
             $table->string('price');
-            $table->integer('quantify');
-            $table->string('sub_total');
             $table->string('thumbnail');
 
             $table->integer('status')
@@ -30,9 +30,9 @@ class CreateOrderDetailsTable extends Migration
             $table->string('user_deleted')
                 ->nullable();
 
-            $table->bigInteger('order_id')
-                ->nullable();
             $table->bigInteger('course_id')
+                ->nullable();
+            $table->bigInteger('user_id')
                 ->nullable();
 
             $table->timestamps();
@@ -41,12 +41,14 @@ class CreateOrderDetailsTable extends Migration
     }
 
     /**
-     * Xóa bảng đơn hàng chi tiêt
+     * Xóa bảng giỏ hàng
      *
      * @return void
      */
     public function down()
     {
-        Schema::dropIfExists('order_details');
+        Schema::table('carts', function (Blueprint $table) {
+            Schema::dropIfExists('carts');
+        });
     }
 }
