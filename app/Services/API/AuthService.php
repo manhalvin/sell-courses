@@ -2,12 +2,16 @@
 namespace App\Services\API;
 
 use Carbon\Carbon;
+use App\Jobs\SigninEmail;
+use App\Jobs\CreateUserJob;
 use Laravolt\Avatar\Avatar;
 use App\Mail\API\RegisterMail;
+use App\Events\CreateUserEvent;
 use App\Mail\API\ForgotPasswordMail;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Event;
 use App\Interfaces\API\Services\AuthServiceInterface;
 use App\Interfaces\API\Repositories\UserRepositoryInterface;
 use App\Interfaces\API\Repositories\VerificationCodeRepositoryInterface;
@@ -53,14 +57,18 @@ class AuthService extends BaseService implements AuthServiceInterface
         if ($verificationCode) {
             $message = "Your OTP is - " . $verificationCode->otp;
 
-            $data = [
+            $userData = [
                 'name' => $inputData['username'],
                 'email' => $inputData['email'],
                 'uuid' => $inputData['uuid'],
                 'message' => $message,
             ];
 
-            Mail::to($inputData['email'])->send(new RegisterMail($data));
+            // CreateUserEvent::dispatch($data);
+            // event(new CreateUserEvent($data));
+            // Event::dispatch(new CreateUserEvent($data));
+            dispatch((new CreateUserJob($inputData, $userData))->delay(Carbon::now()->addSecond(1)));
+
             return [
                 'uuid' => $inputData['uuid'],
                 'otp' => $verificationCode->otp,
@@ -130,7 +138,7 @@ class AuthService extends BaseService implements AuthServiceInterface
     }
 
     /**
-     * Kiểm tra link xác thực email đã hết hiệu lực chưa ? 
+     * Kiểm tra link xác thực email đã hết hiệu lực chưa ?
      * @param mixed $regulateTime
      * @return bool
      */

@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Client\ClientOrderController;
 
 /*
 |--------------------------------------------------------------------------
@@ -22,4 +23,14 @@ Auth::routes();
 
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
 
+Route::group(['prefix' => 'laravel-filemanager'], function () {
+    \UniSharp\LaravelFilemanager\Lfm::routes();
+});
 
+// Route Client: Order
+Route::controller(ClientOrderController::class)->group(function () {
+    Route::prefix('orders/')->middleware('auth')->name('orders.')->group(function () {
+        Route::post('/completecheckout', 'completeCheckout')->name('complete_checkout');
+        Route::get('/completecheckout', 'completeCheckout')->name('complete_checkout');
+    });
+});

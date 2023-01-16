@@ -2,18 +2,19 @@
 
 namespace App\Http\Controllers\Client;
 
-use App\Http\Controllers\API\BaseController;
-use App\Http\Resources\API\CourseResource;
-use App\Services\API\CourseService;
 use Illuminate\Http\Request;
+use App\Services\API\CourseService;
+use Illuminate\Support\Facades\Auth;
+use App\Http\Resources\API\CourseResource;
+use App\Http\Controllers\API\BaseController;
 
 class ClientCourseController extends BaseController
 {
-    protected $model;
+    protected $courseService;
 
     public function __construct()
     {
-        $this->model = new CourseService;
+        $this->courseService = new CourseService;
     }
 
     /**
@@ -30,7 +31,7 @@ class ClientCourseController extends BaseController
         }
 
         try {
-            $course = $this->model->getCourseList($search);
+            $course = $this->courseService->getCourseList($search);
             return $this->sendResponse($course, 'Success ! Fetch data success !');
         } catch (\Exception$e) {
             return $this->sendError($e->getMessage(), null);
@@ -45,7 +46,7 @@ class ClientCourseController extends BaseController
     public function show($id)
     {
         try {
-            $course = $this->model->getById($id);
+            $course = $this->courseService->getById($id);
             return $this->sendResponse($course, 'Success ! Fetch data success !');
         } catch (\Exception$e) {
             return $this->sendError($e->getMessage(), null);
@@ -67,7 +68,7 @@ class ClientCourseController extends BaseController
         }
 
         try {
-            $course = $this->model->getCoursesByCategory($search, $id);
+            $course = $this->courseService->getCoursesByCategory($search, $id);
             $course = CourseResource::collection($course);
             return $this->sendResponse($course, 'Success ! Fetch data success !');
         } catch (\Exception$e) {
@@ -76,7 +77,7 @@ class ClientCourseController extends BaseController
     }
 
     /**
-     * Đăng ký học online
+     * Đăng ký học online 1 khóa
      * @param Request $request
      * @return \Illuminate\Http\JsonResponse
      */
@@ -85,7 +86,7 @@ class ClientCourseController extends BaseController
         $courseId = $request->input('course_id');
 
         try {
-            $this->model->handleEnroll($courseId);
+            $this->courseService->handleEnroll($courseId);
             return $this->sendResponse([], 'Success ! Register for the online course successfully !');
         } catch (\Exception$e) {
             return $this->sendError($e->getMessage(), null);
@@ -93,7 +94,7 @@ class ClientCourseController extends BaseController
     }
 
     /**
-     * Hủy đăng ký học online
+     * Hủy đăng ký học online 1 khóa
      * @param Request $request
      * @return \Illuminate\Http\JsonResponse
      */
@@ -102,8 +103,36 @@ class ClientCourseController extends BaseController
         $courseId = $request->input('course_id');
 
         try {
-            $this->model->handleUnenrolled($courseId);
+            $this->courseService->handleUnenrolled($courseId);
             return $this->sendResponse([], 'Success ! Successfully canceled course registration !');
+        } catch (\Exception$e) {
+            return $this->sendError($e->getMessage(), null);
+        }
+    }
+
+    // Đăng ký học online nhiều khóa cùng lúc
+    public function register(Request $request)
+    {
+        $courseId = $request->input('course_id');
+        $userId = Auth::user()->id;
+
+        try {
+            $this->courseService->handleRegister($courseId, $userId);
+            return $this->sendResponse([], 'Register online for courses successful!');
+        } catch (\Exception$e) {
+            return $this->sendError($e->getMessage(), null);
+        }
+    }
+
+    /**
+     * Xóa tất cả khóa học ra khỏi giỏ hàng
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function cancelRegister()
+    {
+        try {
+            $this->courseService->handleCancelRegister();
+            return $this->sendResponse([], 'Cannel Register online for courses successful!');
         } catch (\Exception$e) {
             return $this->sendError($e->getMessage(), null);
         }

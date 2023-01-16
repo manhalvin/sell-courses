@@ -15,6 +15,7 @@
         "laravel/tinker": "^2.5",
         "laravel/ui": "*",
         "laravolt/avatar": "^4.1",
+        "unisharp/laravel-filemanager": "^2.5",
         "yaza/laravel-repository-service": "*"
     },
     "require-dev": {

@@ -166,6 +166,8 @@ Route::prefix('client')->name('client.')->middleware('auth:sanctum')->group(func
             Route::get('/', 'index')->name('index');
             Route::get('/category/{category_id}', 'getCoursesByCategory')->name('category');
             Route::post('/enroll', 'enroll')->name('enroll');
+            Route::post('/register', 'register')->name('register');
+            Route::delete('/cancel-register', 'cancelRegister')->name('cancel_register');
             Route::delete('/unenrolled', 'unenrolled')->name('unenrolled');
             Route::get('/detail/{course_id}', 'show')->name('show');
         });
@@ -188,6 +190,7 @@ Route::prefix('client')->name('client.')->middleware('auth:sanctum')->group(func
             Route::get('/{order_id}', 'show')->name('show');
             Route::post('/checkout', 'checkout')->name('checkout');
             Route::post('/payment', 'payment')->name('payment');
+            Route::post('/completecheckout', 'completeCheckout')->name('complete_checkout');
         });
     });
 
