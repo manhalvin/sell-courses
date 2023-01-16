@@ -155,7 +155,7 @@ class CategoryCourseService extends BaseService
     }
 
     /**
-     * Xử lý xóa tam thời bản ghi
+     * Xử lý xóa mềm bản ghi
      * @param mixed $id
      * @throws \Exception
      * @return mixed
@@ -176,7 +176,8 @@ class CategoryCourseService extends BaseService
     }
 
     /**
-     * Xử lý các hành đông như xóa tạm thời , xóa vĩnh viễn , khôi phuc nhiều bản ghi
+     * Xử lý các hành đông như
+     * xóa mềm , xóa vĩnh viễn , khôi phuc nhiều bản ghi
      * @param mixed $listCheck
      * @param mixed $action
      * @throws \Exception
@@ -194,8 +195,7 @@ class CategoryCourseService extends BaseService
 
         $newListCheck = array();
         foreach ($listCheck as $value) {
-            $exploded = explode(",", $value);
-            $newListCheck[] = $exploded;
+            $newListCheck[] = explode(",", $value);
         }
         $listCheck = $newListCheck[0];
 

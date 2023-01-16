@@ -1,13 +1,13 @@
 <?php
 namespace App\Services\API;
 
-use Laravolt\Avatar\Avatar;
-use Illuminate\Support\Facades\Auth;
 use App\Http\Resources\API\CourseResource;
 use App\Repositories\Eloquent\API\CartRepository;
-use App\Repositories\Eloquent\API\OrderRepository;
 use App\Repositories\Eloquent\API\CourseRepository;
 use App\Repositories\Eloquent\API\OrderDetailRepository;
+use App\Repositories\Eloquent\API\OrderRepository;
+use Illuminate\Support\Facades\Auth;
+use Laravolt\Avatar\Avatar;
 
 class CourseService extends BaseService
 {
@@ -26,7 +26,7 @@ class CourseService extends BaseService
     }
 
     /**
-     * Xử lý lưu dữ liệu khóa hoc
+     * Xử lý chức năng thêm khóa hoc
      * @param mixed $inputData
      * @param mixed $thumbnail
      * @param mixed $hasFile
@@ -49,6 +49,7 @@ class CourseService extends BaseService
         if (!$course) {
             throw new \Exception('Error ! Create Data Courses No Success', 1);
         }
+
         $result = [
             'course_id' => $course->id,
         ];
@@ -56,7 +57,8 @@ class CourseService extends BaseService
     }
 
     /**
-     * Xử lý lấy tất cả bản ghi khóa hoc có bô lọc
+     * Xử lý lấy tất cả bản ghi khóa hoc
+     * combo filter + search + sort
      * @param mixed $status
      * @param mixed $search
      * @param mixed $sortBy
@@ -99,7 +101,7 @@ class CourseService extends BaseService
     }
 
     /**
-     * Lấy danh sách khóa hoc
+     * Lấy danh sách tất cả khóa hoc
      * @param mixed $search
      * @throws \Exception
      * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
@@ -122,8 +124,8 @@ class CourseService extends BaseService
      */
     public function getCoursesByCategory($search, $id)
     {
-        $checkCategoryExist = $this->courseRepository->checkCategoryExist($id);
-        if (!$checkCategoryExist) {
+        $CategoryExist = $this->courseRepository->checkCategoryExist($id);
+        if (!$CategoryExist) {
             throw new \Exception('Error ! Not find category course', 1);
         }
         $result = $this->courseRepository->getCoursesByCategory($id, $search, config('services.PER_PAGE'));
@@ -221,7 +223,8 @@ class CourseService extends BaseService
     }
 
     /**
-     * Xử lý các hành đông như xóa tạm thời , xóa vĩnh viễn , khôi phuc bản ghi
+     * Xử lý các hành đông như
+     * xóa tạm thời , xóa vĩnh viễn , khôi phuc nhiều bản ghi
      * @param mixed $listCheck
      * @param mixed $action
      * @throws \Exception
@@ -239,14 +242,12 @@ class CourseService extends BaseService
 
         $newListCheck = array();
         foreach ($listCheck as $value) {
-            $exploded = explode(",", $value);
-            $newListCheck[] = $exploded;
+            $newListCheck[] =  explode(",", $value);
         }
-        $listCheck = $newListCheck[0];
 
         if ($action == 'delete') {
 
-            $item = $this->courseRepository->checkManyRecordExist($listCheck);
+            $item = $this->courseRepository->checkManyRecordExist($newListCheck[0]);
             if (!$item) {
                 throw new \Exception('Record no exist', 1);
             }
@@ -291,10 +292,7 @@ class CourseService extends BaseService
         $userId = Auth::user()->id;
 
         $cartItem = $this->cartRepository->getCart($id, $userId);
-        if ($cartItem) {
-            $cartItem->qty = $qty;
-            $cartItem->save();
-        } else {
+        if (!$cartItem) {
             $data = [
                 'session_id' => $sessionId,
                 'course_id' => $id,
@@ -302,11 +300,12 @@ class CourseService extends BaseService
                 'qty' => $qty,
                 'title' => $course->title,
                 'price' => $course->price,
-                'thumbnail' => $course->thumbnail
+                'thumbnail' => $course->thumbnail,
             ];
-            $this->cartRepository->createCart($data);
+            $result = $this->cartRepository->createCart($data);
         }
-        return $cartItem;
+
+        return $result;
     }
 
     /**
@@ -359,6 +358,75 @@ class CourseService extends BaseService
 
             return $cartInfo;
         }
+    }
+
+    /**
+     * Xử lý chức năng đăng ký học online nhiều khóa cùng lúc
+     * @param array $courseId
+     * @return void
+     */
+    public function handleRegister(array $courseId, int $userId)
+    {
+        $qty = 1;
+        $carts = array();
+        $newCourseId = array();
+        $listCourseId = array();
+        $sessionId = substr(md5(microtime()), rand(0, 26), 5);
+
+        $courseExist = $this->courseRepository->checkManyRecordExist($courseId);
+        if (!$courseExist) {
+            throw new \Exception('Error ! No find course !', 1);
+        }
+
+        foreach ($courseId as $value) {
+            $listCourseId[] = explode(",", $value);
+        }
+
+        $courses = $this->courseRepository->getMultipleCourses($listCourseId[0]);
+        foreach ($courses as $course) {
+            $carts[] = $this->cartRepository->getCart($course->id, $userId);
+        };
+
+        // kiểm tra xem người dùng đã đăng ký cho bất kỳ khóa học nào chưa !
+        foreach ($carts as $cart) {
+            if(!empty($cart->course_id)){
+                $newCourseId[] = $cart->course_id;
+            }
+        }
+
+        $newCourseId = implode(",", $newCourseId);
+        if ($newCourseId) {
+            throw new \Exception("You have already registered for this course: $newCourseId", 1);
+        }
+
+        // Tạo đăng ký học online mới
+        foreach ($courses as $course) {
+            $data = [
+                'session_id' => $sessionId,
+                'course_id' => $course->id,
+                'user_id' => $userId,
+                'qty' => $qty,
+                'title' => $course->title,
+                'price' => $course->price,
+                'thumbnail' => $course->thumbnail,
+            ];
+            $this->cartRepository->createCart($data);
+        }
+    }
+
+    /**
+     * Xử lý xóa tất cả khóa học ra khỏi cart.
+     * @throws \Exception
+     * @return mixed
+     */
+    public function handleCancelRegister()
+    {
+        $result = $this->cartRepository->truncate();
+        if (!$result) {
+            throw new \Exception('Error ! Delete all record no success', 1);
+        }
+
+        return $result;
     }
 
 }

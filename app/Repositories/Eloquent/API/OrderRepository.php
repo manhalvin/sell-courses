@@ -89,6 +89,11 @@ class OrderRepository
         return $this->model->where('id', $id)->exists();
     }
 
+    public function checkExistByOrderCode($id)
+    {
+        return $this->model->where('order_code', $id)->exists();
+    }
+
     /**
      * Lấy thông tin chi tiết của đơn hàng
      * @param mixed $id
@@ -169,7 +174,7 @@ class OrderRepository
      * @param mixed $id
      * @return mixed
      */
-    public function updateOrder($data, $id)
+    public function updateOrder($id, $data)
     {
         return $this->model->find($id)
             ->update(['status' => $data['status']]);

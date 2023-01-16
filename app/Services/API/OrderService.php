@@ -7,6 +7,7 @@ use App\Repositories\Eloquent\API\CouponRepository;
 use App\Repositories\Eloquent\API\CourseRepository;
 use App\Repositories\Eloquent\API\OrderDetailRepository;
 use App\Repositories\Eloquent\API\OrderRepository;
+use App\Repositories\Eloquent\API\PaymentRepository;
 use Illuminate\Support\Facades\Auth;
 
 class OrderService extends BaseService
@@ -17,6 +18,7 @@ class OrderService extends BaseService
     protected $courseRepository;
     protected $orderDetailRepository;
     protected $table = 'orders';
+    protected $paymentRepository;
 
     public function __construct()
     {
@@ -25,6 +27,7 @@ class OrderService extends BaseService
         $this->cartRepository = new CartRepository;
         $this->courseRepository = new CourseRepository;
         $this->orderDetailRepository = new OrderDetailRepository;
+        $this->paymentRepository = new PaymentRepository;
     }
 
     /**
@@ -75,6 +78,7 @@ class OrderService extends BaseService
         ];
 
         $orderId = $this->orderRepository->createOrder($data);
+        // $order = $this->orderRepository->getById($orderId);
         if (!$orderId) {
             throw new \Exception('Save order fail !', 1);
         }
@@ -84,26 +88,31 @@ class OrderService extends BaseService
             $this->orderDetailRepository->createOrderDetail($cart, $orderId);
         }
 
-        return $carts;
+        return [
+            'order_id' => $orderId,
+        ];
     }
 
     /**
      * Xử lý tích hơp thanh toán VNPay = ATM
      * @return void
      */
-    public function handlePayment()
+    public function handlePayment($orderId)
     {
+        $order = $this->orderRepository->getById($orderId);
         $vnp_Url = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html";
-        $vnp_Returnurl = "http://localhost/Laravel/api/client/courses/checkout/";
+        $vnp_Returnurl = "http://localhost/Laravel/orders/completecheckout/";
         $vnp_TmnCode = "UD2KZW06"; //Mã website tại VNPAY
         $vnp_HashSecret = "HUQJSLMKGFXYCNYOWXBBEYDADEGNMOBB"; //Chuỗi bí mật
 
-        $vnp_TxnRef = 'IS-HZZZWA8'; //Mã đơn hàng.
-        $vnp_OrderInfo = 'Thanh toán đơn hàng';
+        $vnp_TxnRef = $order->order_code; //Mã đơn hàng.
+        $vnp_OrderInfo = $order->id;
         $vnp_OrderType = 'billpayment';
-        $vnp_Amount = 50000 * 100;
+        $vnp_Amount = (($order->final_amount) * 100);
         $vnp_Locale = 'vn';
         $vnp_BankCode = 'NCB';
+        $vnp_Bill_Email = $order->email;
+        $fullName = trim($order->name);
         if (isset($fullName) && trim($fullName) != '') {
             $name = explode(' ', $fullName);
             $vnp_Bill_FirstName = array_shift($name);
@@ -121,8 +130,9 @@ class OrderService extends BaseService
             "vnp_OrderType" => $vnp_OrderType,
             "vnp_ReturnUrl" => $vnp_Returnurl,
             "vnp_TxnRef" => $vnp_TxnRef,
-            "vnp_Bill_FirstName" => 'Quốc',
-            "vnp_Bill_LastName" => 'Mạnh',
+            "vnp_Bill_FirstName" => $vnp_Bill_FirstName,
+            "vnp_Bill_LastName" => $vnp_Bill_LastName,
+            "vnp_Bill_Email" => $vnp_Bill_Email,
         );
 
         if (isset($vnp_BankCode) && $vnp_BankCode != "") {
@@ -160,6 +170,34 @@ class OrderService extends BaseService
         } else {
             echo json_encode($returnData);
         }
+    }
+
+    /**
+     * Xử lý chức năng hoàn tất thanh toán
+     * @param mixed $inputData
+     * @throws \Exception
+     * @return void
+     */
+    public function handleCompleteCheckout($inputData)
+    {
+        $order = $this->orderRepository->checkExistByOrderCode($inputData['vnp_TxnRef']);
+        if (!$order) {
+            throw new \Exception('Order does not exist', 1);
+        }
+
+        $return = $this->paymentRepository->checkOrderExistByPayment($inputData['vnp_OrderInfo']);
+        if($return){
+            throw new \Exception('The order already exists in the payment', 1);
+        }
+
+        $payment = $this->paymentRepository->createPayment($inputData);
+        $this->orderRepository->updateOrder($inputData['vnp_OrderInfo'], $inputData);
+
+        if (!$payment) {
+            throw new \Exception('Create payment fail', 1);
+        }
+
+        return $payment;
     }
 
     /**
@@ -232,7 +270,7 @@ class OrderService extends BaseService
      */
     public function getAll($status, $search, $sortBy, $sortType)
     {
-        // Lọc trạng thái ẩn hiên
+        // Lọc trạng thái đơn hàng
         $filters = [];
         if (!empty($status)) {
             if ($status == 'ordered') {
@@ -243,10 +281,10 @@ class OrderService extends BaseService
                 $filters[] = [$this->table . '.status', '=', 'delivery in progress'];
             } elseif ($status == 'delivered') {
                 $filters[] = [$this->table . '.status', '=', 'delivered'];
-            } elseif ($status == 'Cancelled') {
+            } elseif ($status == 'cancelled') {
                 $filters[] = [$this->table . '.status', '=', 'cancelled'];
-            } elseif ($status == 'lie') {
-                $filters[] = [$this->table . '.status', '=', 'lie'];
+            } elseif ($status == 'completed') {
+                $filters[] = [$this->table . '.status', '=', 'completed'];
             } elseif ($status == 'wait for pay') {
                 $filters[] = [$this->table . '.status', '=', 'wait for pay'];
             }

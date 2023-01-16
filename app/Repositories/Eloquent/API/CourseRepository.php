@@ -38,7 +38,8 @@ class CourseRepository
     }
 
     /**
-     * Lấy danh sách khóa hoc có combo: filter + search + sort + pagination
+     * Lấy danh sách khóa hoc
+     * combo: filter + search + sort + pagination
      * @param mixed $status
      * @param mixed $filters
      * @param mixed $search
@@ -80,7 +81,8 @@ class CourseRepository
     }
 
     /**
-     * Lấy danh sach khóa hoc combo: search + pagination
+     * Lấy danh sách khóa hoc
+     * combo: search + pagination
      * @param mixed $search
      * @param mixed $perPage
      * @return mixed
@@ -259,5 +261,24 @@ class CourseRepository
     public function checkManyRecordExist($listCheck)
     {
         return $this->course->whereIn('id', $listCheck)->exists();
+    }
+
+    /**
+     *  Truy xuất tất cả các bản ghi có giá trị của cột id trong mảng đã cho của id khóa học
+     * @param array $courseId
+     * @return mixed
+     */
+    public function getMultipleCourses(array $courseId)
+    {
+        return $this->course->whereIn('id', $courseId)->get();
+    }
+
+    /**
+     * Xóa tất cả bản ghi trong database
+     * @return mixed
+     */
+    public function truncate()
+    {
+        return $this->course->truncate();
     }
 }

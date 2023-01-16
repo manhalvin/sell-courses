@@ -18,7 +18,7 @@ class ClientOrderController extends BaseController
     }
 
     /**
-     * Checkout
+     * Chức năng checkout
      * @param PaymentRequest $request
      * @return \Illuminate\Http\JsonResponse
      */
@@ -30,22 +30,41 @@ class ClientOrderController extends BaseController
         $paymentMethod = $request->input('payment_method');
 
         try {
-            $this->orderService->handleCheckout($email, $name, $couponCode, $paymentMethod);
-            return $this->sendResponse([], 'Success ! Checkout success');
+            $result = $this->orderService->handleCheckout($email, $name, $couponCode, $paymentMethod);
+            return $this->sendResponse($result, 'Success ! Checkout success');
         } catch (\Exception$e) {
             return $this->sendError($e->getMessage(), null);
         }
     }
 
     /**
-     * Payment
+     * Chức năng thanh toán: payment
      * @return \Illuminate\Http\JsonResponse
      */
-    public function payment()
+    public function payment(Request $request)
     {
+        $orderId = $request->input('order_id');
         try {
-            $this->orderService->handlePayment();
+            $this->orderService->handlePayment($orderId);
             return $this->sendResponse([], 'Success ! Payment success');
+        } catch (\Exception$e) {
+            return $this->sendError($e->getMessage(), null);
+        }
+    }
+
+
+    /**
+     * Chức năng hoàn tất thanh toán đơn hàng
+     * @return void
+     */
+    public function completeCheckout(Request $request)
+    {
+        $inputData = $request->all();
+        $inputData['status'] = 'completed';
+
+        try {
+            $this->orderService->handleCompleteCheckout($inputData);
+            return $this->sendResponse([], 'Complete checkout success !');
         } catch (\Exception$e) {
             return $this->sendError($e->getMessage(), null);
         }

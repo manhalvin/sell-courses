@@ -57,4 +57,13 @@ class CartRepository
         return $this->model->create($data);
     }
 
+    /**
+     * Xóa tất cả khóa học ra khỏi giỏ hàng
+     * @return mixed
+     */
+    public function truncate()
+    {
+        return $this->model->truncate();
+    }
+
 }
