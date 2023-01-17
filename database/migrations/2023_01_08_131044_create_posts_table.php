@@ -18,8 +18,9 @@ class CreatePostsTable extends Migration
             $table->string('title');
             $table->text('content');
             $table->string('slug');
-            $table->string('thumbnail');
-            $table->text('meta_keyword');
+            $table->text('thumbnail');
+            $table->text('meta_keyword')
+                ->nullable();
             $table->integer('status')
                 ->nullable();
             $table->bigInteger('course_id')

@@ -21,7 +21,8 @@ class CreateOrdersTable extends Migration
             $table->string('total_quantify');
             $table->string('payment_method');
             $table->string('order_date');
-            $table->string('order_destroy');
+            $table->string('order_destroy')
+                ->nullable();
             $table->string('original_amount');
             $table->string('discount_amount');
             $table->string('coupon_code');
@@ -29,7 +30,7 @@ class CreateOrdersTable extends Migration
             $table->bigInteger('user_id')
                 ->nullable();
 
-            $table->integer('status')
+            $table->string('status')
                 ->nullable();
             $table->string('user_created')
                 ->nullable();

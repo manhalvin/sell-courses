@@ -82,12 +82,11 @@ class OrderController extends BaseController
      * @param mixed $id
      * @return \Illuminate\Http\JsonResponse
      */
-    public function update(OrderRequest $request, $id)
+    public function update(OrderRequest $request, $orderId)
     {
         $data = $request->all();
-
         try {
-            $this->orderService->handleUpdateData($data, $id);
+            $this->orderService->handleUpdateData($orderId, $data);
             return $this->sendResponse([], 'Update Status Order Success !');
         } catch (\Exception$e) {
             return $this->sendError($e->getMessage(), null);

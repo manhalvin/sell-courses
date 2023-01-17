@@ -174,9 +174,13 @@ class OrderRepository
      * @param mixed $id
      * @return mixed
      */
-    public function updateOrder($id, $data)
+    public function updateOrder($orderId, $data)
     {
-        return $this->model->find($id)
+        if(is_string($data)){
+            return $this->model->find($orderId)
+            ->update(['status' => $data]);
+        }
+        return $this->model->find($orderId)
             ->update(['status' => $data['status']]);
     }
 

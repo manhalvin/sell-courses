@@ -338,14 +338,14 @@ class OrderService extends BaseService
      * @throws \Exception
      * @return mixed
      */
-    public function handleUpdateData($data, $id)
+    public function handleUpdateData($orderId, $data)
     {
-        $item = $this->orderRepository->checkRecordExist($id);
+        $item = $this->orderRepository->checkRecordExist($orderId);
         if (!$item) {
             throw new \Exception('Error ! Not find record', 1);
         }
 
-        $result = $this->orderRepository->updateOrder($data, $id);
+        $result = $this->orderRepository->updateOrder($orderId, $data);
         if (!$result) {
             throw new \Exception('Error ! Update Data No Success', 1);
         }

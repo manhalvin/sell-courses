@@ -84,9 +84,10 @@ class ClientCourseController extends BaseController
     public function enroll(Request $request)
     {
         $courseId = $request->input('course_id');
+        $userId = Auth::user()->id;
 
         try {
-            $this->courseService->handleEnroll($courseId);
+            $this->courseService->handleEnroll($courseId, $userId);
             return $this->sendResponse([], 'Success ! Register for the online course successfully !');
         } catch (\Exception$e) {
             return $this->sendError($e->getMessage(), null);

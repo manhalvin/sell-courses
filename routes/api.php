@@ -43,6 +43,7 @@ Route::prefix('auth/')->name('auth.')->group(function () {
         Route::put('forgot-password', 'forgotPassword')->name('forgot_password');
         Route::prefix('otp/')->name('otp.')->group(function () {
             Route::put('forgot-password', 'forgotPasswordWithOtp')->name('forgot_password');
+            Route::post('forgot-password', 'forgotPasswordWithOtp')->name('forgot_password');
         });
         Route::delete('logout', 'logout')->name('logout');
     });
@@ -65,6 +66,7 @@ Route::prefix('admin/')->middleware('auth:sanctum','CheckRole')->group(function 
             Route::get('{id}', 'show')->name('show');
             Route::post('action', 'action')->name('action');
             Route::put('{id}', 'update')->name('update');
+            Route::post('{id}', 'update')->name('update');
             Route::delete('{id}', 'destroy')->name('destroy');
         });
     });
@@ -79,6 +81,7 @@ Route::prefix('admin/')->middleware('auth:sanctum','CheckRole')->group(function 
             Route::get('{id}', 'show')->name('show');
             Route::post('action', 'action')->name('action');
             Route::put('{id}', 'update')->name('update');
+            Route::post('{id}', 'update')->name('update');
             Route::delete('{id}', 'destroy')->name('destroy');
         });
     });
@@ -93,6 +96,7 @@ Route::prefix('admin/')->middleware('auth:sanctum','CheckRole')->group(function 
             Route::get('{id}', 'show')->name('show');
             Route::post('action', 'action')->name('action');
             Route::put('{id}', 'update')->name('update');
+            Route::post('{id}', 'update')->name('update');
             Route::delete('{id}', 'destroy')->name('destroy');
         });
     });
@@ -106,6 +110,7 @@ Route::prefix('admin/')->middleware('auth:sanctum','CheckRole')->group(function 
             Route::post('{course_id}/video', 'store')->name('store');
             Route::get('video/{id}', 'show')->name('show');
             Route::post('video/action', 'action')->name('action');
+            Route::put('video/{id}', 'update')->name('update');
             Route::post('video/{id}', 'update')->name('update');
             Route::delete('video/{id}', 'destroy')->name('destroy');
         });
@@ -121,6 +126,7 @@ Route::prefix('admin/')->middleware('auth:sanctum','CheckRole')->group(function 
             Route::get('{id}', 'show')->name('show');
             Route::post('action', 'action')->name('action');
             Route::put('{id}', 'update')->name('update');
+            Route::post('{id}', 'update')->name('update');
             Route::delete('{id}', 'destroy')->name('destroy');
 
             Route::prefix('images/')->name('images.')->group(function () {

@@ -279,33 +279,32 @@ class CourseService extends BaseService
      * @throws \Exception
      * @return mixed
      */
-    public function handleEnroll($id)
+    public function handleEnroll($courseId, $userId)
     {
-        $checkCourseExist = $this->courseRepository->checkRecordExist($id);
+        $checkCourseExist = $this->courseRepository->checkRecordExist($courseId);
         if (!$checkCourseExist) {
             throw new \Exception('Error ! No find course !', 1);
         }
 
         $qty = 1;
-        $course = $this->courseRepository->getById($id);
+        $course = $this->courseRepository->getById($courseId);
         $sessionId = substr(md5(microtime()), rand(0, 26), 5);
-        $userId = Auth::user()->id;
 
-        $cartItem = $this->cartRepository->getCart($id, $userId);
+        $cartItem = $this->cartRepository->getCart($courseId, $userId);
         if (!$cartItem) {
             $data = [
                 'session_id' => $sessionId,
-                'course_id' => $id,
+                'course_id' => $courseId,
                 'user_id' => $userId,
                 'qty' => $qty,
                 'title' => $course->title,
                 'price' => $course->price,
                 'thumbnail' => $course->thumbnail,
             ];
-            $result = $this->cartRepository->createCart($data);
+            $this->cartRepository->createCart($data);
         }
 
-        return $result;
+        return $cartItem;
     }
 
     /**
