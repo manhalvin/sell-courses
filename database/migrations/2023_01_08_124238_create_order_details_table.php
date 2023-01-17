@@ -19,9 +19,9 @@ class CreateOrderDetailsTable extends Migration
             $table->string('price');
             $table->integer('quantify');
             $table->string('sub_total');
-            $table->string('thumbnail');
+            $table->text('thumbnail');
 
-            $table->integer('status')
+            $table->string('status')
                 ->nullable();
             $table->string('user_created')
                 ->nullable();
