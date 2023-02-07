@@ -1,30 +1,30 @@
 <?php
 namespace App\Services\API;
 
-use Carbon\Carbon;
-use App\Jobs\SigninEmail;
-use App\Jobs\CreateUserJob;
-use Laravolt\Avatar\Avatar;
-use App\Mail\API\RegisterMail;
-use App\Events\CreateUserEvent;
+use App\Interfaces\API\Repositories\UserRepositoryInterface;
+use App\Interfaces\API\Repositories\VerificationCodeRepositoryInterface;
+use App\Interfaces\API\Services\AuthServiceInterface;
 use App\Mail\API\ForgotPasswordMail;
+use App\Mail\API\RegisterMail;
+use App\Repositories\Eloquent\API\FailedLoginRepository;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\Event;
-use App\Interfaces\API\Services\AuthServiceInterface;
-use App\Interfaces\API\Repositories\UserRepositoryInterface;
-use App\Interfaces\API\Repositories\VerificationCodeRepositoryInterface;
+use Illuminate\Support\Facades\Storage;
+use Laravolt\Avatar\Avatar;
 
 class AuthService extends BaseService implements AuthServiceInterface
 {
     private $userRepository;
     private $verificationCodeRepository;
+    private $failedLoginRepository;
 
     public function __construct(UserRepositoryInterface $userRepository,
         VerificationCodeRepositoryInterface $verificationCodeRepository) {
         $this->userRepository = $userRepository;
         $this->verificationCodeRepository = $verificationCodeRepository;
+        $this->failedLoginRepository = new FailedLoginRepository;
     }
 
     /**
@@ -35,16 +35,19 @@ class AuthService extends BaseService implements AuthServiceInterface
      * @param mixed $thumbnail
      * @return array
      */
-    public function handleRegister($inputData, $userData, $hasFile, $thumbnail)
+    public function handleRegister($inputData, $userData, $thumbnail)
     {
-        if (!$hasFile) {
+        $userData['uuid'] = md5(str_shuffle('abcdefghijklmnopqrstuvwxyz' . time()));
+        $userData['password'] = bcrypt($inputData['password']);
+
+        if (!$thumbnail) {
             $avatar = new Avatar();
             $userData['thumbnail'] = $avatar->create($inputData['name'])->toBase64();
         } else {
-            $imageName = $thumbnail->getClientOriginalName();
-            $thumbnail->move('image/users', $imageName);
-            $image = 'image/users/' . $imageName;
-            $userData['thumbnail'] = $image;
+            $extension = $thumbnail->getClientOriginalExtension();
+            $imageName = time() . '.' . $extension;
+            $userData['thumbnail'] = 'image/users/' . $imageName;
+            Storage::put('image/users/' . $imageName, file_get_contents($thumbnail));
         }
 
         $userId = $this->userRepository->createUser($userData);
@@ -54,27 +57,26 @@ class AuthService extends BaseService implements AuthServiceInterface
 
         # Generate An OTP
         $verificationCode = $this->generateOtp($userData['email']);
-        if ($verificationCode) {
-            $message = "Your OTP is - " . $verificationCode->otp;
-
-            $userData = [
-                'name' => $inputData['username'],
-                'email' => $inputData['email'],
-                'uuid' => $inputData['uuid'],
-                'message' => $message,
-            ];
-
-            // CreateUserEvent::dispatch($data);
-            // event(new CreateUserEvent($data));
-            // Event::dispatch(new CreateUserEvent($data));
-            dispatch((new CreateUserJob($inputData, $userData))->delay(Carbon::now()->addSecond(1)));
-
-            return [
-                'uuid' => $inputData['uuid'],
-                'otp' => $verificationCode->otp,
-                'user_id' => $userId,
-            ];
+        if (!$verificationCode) {
+            $this->sendError("Unable to generate an OTP");
         }
+
+        $message = "Your OTP is - " . $verificationCode->otp;
+
+        $userData = [
+            'name' => $inputData['username'],
+            'email' => $inputData['email'],
+            'uuid' => $userData['uuid'],
+            'message' => $message,
+        ];
+
+        Mail::to($inputData['email'])->send(new RegisterMail($userData));
+
+        return [
+            'uuid' => $userData['uuid'],
+            'otp' => $verificationCode->otp,
+            'user_id' => $userId,
+        ];
 
     }
 
@@ -87,7 +89,7 @@ class AuthService extends BaseService implements AuthServiceInterface
     {
         $checkEmailExist = $this->userRepository->checkEmailExist($email);
         if (!$checkEmailExist) {
-            $this->sendError("Sorry ! Not find email !");
+            $this->sendError("Not find email !");
         }
         $user = $this->userRepository->getUserByEmail($email);
 
@@ -114,25 +116,25 @@ class AuthService extends BaseService implements AuthServiceInterface
     {
         $checkUuidExist = $this->userRepository->checkUuidExist($uuid);
         if (!$checkUuidExist) {
-            $this->sendError("Sorry ! Unable to request !");
+            $this->sendError("Unable to request !");
         }
 
         $userData = $this->userRepository->getUserByUuid($uuid);
         if (!$userData) {
-            $this->sendError("Sorry ! We are unable to find your account !");
+            $this->sendError("We are unable to find your account !");
         }
 
         if (!$this->verifyExpireTime($userData->activation_date)) {
-            $this->sendError("Sorry ! Activation link was expired !");
+            $this->sendError("Activation link was expired !");
         }
 
         if ($userData->status == 1) {
-            $this->sendError("Sorry ! Account has been activated ! ");
+            $this->sendError("Account has been activated ! ");
         }
 
         $result = $this->userRepository->updateUserStatusByUuid($uuid);
         if (!$result) {
-            $this->sendError("Sorry ! Account activated failed !");
+            $this->sendError("Account activated failed !");
         }
         return $result;
     }
@@ -161,16 +163,16 @@ class AuthService extends BaseService implements AuthServiceInterface
 
         $now = Carbon::now("Asia/Ho_Chi_Minh");
         if (!$verificationCode) {
-            $this->sendError("Sorry ! Your OTP is not correct");
+            $this->sendError("Your OTP is not correct");
         } elseif ($verificationCode && $now->isAfter($verificationCode->expire_at)) {
-            $this->sendError("Sorry ! Your OTP has been expired");
+            $this->sendError("Your OTP has been expired");
         }
 
         $user = $this->userRepository->whereId($userId);
 
         if (!$user) {
             // Expire The OTP
-            $this->sendError("Sorry ! Your OTP is not correct");
+            $this->sendError("Your OTP is not correct");
         }
         $this->verificationCodeRepository->updateExpireAt();
         $result = $this->userRepository->updateUserStatusById($userId);
@@ -187,7 +189,7 @@ class AuthService extends BaseService implements AuthServiceInterface
     {
         $userData = $this->userRepository->getUserByEmail($email);
         if (!$userData) {
-            $this->sendError("Sorry ! Unauthorize !");
+            $this->sendError("Unauthorize !");
         }
         return $userData;
     }
@@ -198,15 +200,43 @@ class AuthService extends BaseService implements AuthServiceInterface
      * @param mixed $userData
      * @return array<string>
      */
-    public function handleLogin($password, $userData)
+    public function handleLogin($password, $userData, $ip)
     {
         $data = [
             'email' => $userData->email,
             'password' => $password,
         ];
 
+        $now = Carbon::now();
+        $failedLogin = $this->failedLoginRepository->getById();
+
+        if ($failedLogin) {
+            if ($failedLogin->attempts >= 2) {
+                if ($failedLogin->time) {
+
+                    $currentTime = strtotime($now);
+                    $regulateTime = strtotime($failedLogin->time);
+                    $differenceTime = $currentTime - $regulateTime;
+
+                    if ($differenceTime <= 0) {
+                        $this->sendError("Your IP address has been banned for 1 minutes");
+                    }else{
+                        $this->failedLoginRepository->update($ip);
+                    }
+                    
+                }else{
+                    $failedLogin->time = Carbon::now()->addMinutes(1);
+                }
+                // $this->sendError("Too many login attempts from this IP address");
+                $failedLogin->save();
+            }
+
+            // $this->failedLoginRepository->truncate();
+        }
+
         if (!Auth::attempt($data)) {
-            $this->sendError("Sorry ! Unauthorize !");
+            $this->failedLoginRepository->saveFailedLogin($ip);
+            $this->sendError("Unauthorize !");
         }
 
         if ($userData->status == 0) {
@@ -236,7 +266,7 @@ class AuthService extends BaseService implements AuthServiceInterface
 
         $result = $this->userRepository->updatePassword($passwordNew, $uuid);
         if (!$result) {
-            $this->sendError('Error ! Update password fail !');
+            $this->sendError('Update password fail !');
         }
         return $result;
     }
@@ -275,7 +305,7 @@ class AuthService extends BaseService implements AuthServiceInterface
      */
     public function handleForgotPasswordWithOtp($inputData)
     {
-        $verificationCode =  $this->verificationCodeRepository
+        $verificationCode = $this->verificationCodeRepository
             ->checkOtpExist($inputData['user_id'], $inputData['otp']);
 
         $now = Carbon::now();

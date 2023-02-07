@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\API;
 
 use Carbon\Carbon;
+use App\Enums\Role;
+use App\Enums\Status;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Session;
@@ -32,28 +34,24 @@ class AuthController extends BaseController
     public function register(RegisterRequest $request)
     {
         $inputData = $request->all();
-        $inputData['uuid'] = md5(str_shuffle('abcdefghijklmnopqrstuvwxyz' . time()));
 
         $userData = [
             'name' => $request->input('name'),
             'username' => $request->input('username'),
             'email' => $request->input('email'),
             'gender' => $request->input('gender'),
-            'status' => 0,
-            'password' => bcrypt($request->input('password')),
+            'status' => Status::Inactive,
             'mobile_no' => $request->input('phone'),
-            'uuid' => $inputData['uuid'],
-            'role_id' => 1,
-            'activation_date' => Carbon::now()->timezone('Asia/Ho_Chi_Minh')->format('Y-m-d H:i:s'),
+            'role_id' => Role::User,
+            'activation_date' => now(),
         ];
-        $hasFile = $request->hasFile('thumbnail');
         $thumbnail = $request->thumbnail;
 
         try {
-            $result = $this->authService->handleRegister($inputData, $userData, $hasFile, $thumbnail);
-            return $this->sendResponse($result, 'Send mail success !');
+            $result = $this->authService->handleRegister($inputData, $userData, $thumbnail);
+            return $this->sendResponse($result, 'Send mail success !', 200);
         } catch (\Exception$e) {
-            return $this->sendError($e->getMessage(), null);
+            return $this->sendError($e->getMessage(), null, 400);
         }
     }
 
@@ -66,9 +64,9 @@ class AuthController extends BaseController
     {
         try {
             $this->authService->handleVerifyAccount($uuid);
-            return $this->sendResponse([], 'Account verification successful !');
+            return $this->sendResponse([], 'Account verification successful !', 200);
         } catch (\Exception$e) {
-            return $this->sendError($e->getMessage(), null);
+            return $this->sendError($e->getMessage(), null, 400);
         }
     }
 
@@ -99,6 +97,8 @@ class AuthController extends BaseController
     {
         $email = $request->input('email');
         $password = $request->input('password');
+        $ip = $request->ip();
+
 
         try {
             $userData = $this->authService->verifyEmail($email);
@@ -107,7 +107,7 @@ class AuthController extends BaseController
         }
 
         try {
-            $result = $this->authService->handleLogin($password, $userData);
+            $result = $this->authService->handleLogin($password, $userData, $ip);
             return $this->sendResponse($result, 'Login successful !');
         } catch (\Exception$e) {
             return $this->sendError($e->getMessage(), null);

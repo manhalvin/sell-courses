@@ -4,7 +4,7 @@ namespace App\Interfaces\API\Services;
 
 interface AuthServiceInterface
 {
-    public function handleRegister($inputData, $userData, $hasFile, $thumbnail);
+    public function handleRegister($inputData, $userData, $thumbnail);
 
     public function handleVerifyAccount(string $uuid);
 
@@ -12,7 +12,7 @@ interface AuthServiceInterface
 
     public function verifyEmail($email);
 
-    public function handleLogin($password, $userData);
+    public function handleLogin($password, $userData, $ip);
 
     public function handleChangePassword($passwordOld, $passwordNew, $password, $uuid);
 

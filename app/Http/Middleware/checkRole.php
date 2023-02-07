@@ -7,7 +7,7 @@ use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
-class checkRole extends BaseController
+class CheckRole extends BaseController
 {
     /**
      * Kiểm tra vai trò của người truy cập vào website (lọc bộ request của người dùng)
