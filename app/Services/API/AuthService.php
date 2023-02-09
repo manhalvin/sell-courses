@@ -125,6 +125,7 @@ class AuthService extends BaseService implements AuthServiceInterface
         }
 
         if (!$this->verifyExpireTime($userData->activation_date)) {
+            $userData->delete();
             $this->sendError("Activation link was expired !");
         }
 
@@ -153,6 +154,8 @@ class AuthService extends BaseService implements AuthServiceInterface
         if ($differenceTime < 3600) {
             return true;
         }
+
+        return false;
     }
 
     // Xư lý xác thực OTP
@@ -200,38 +203,42 @@ class AuthService extends BaseService implements AuthServiceInterface
      * @param mixed $userData
      * @return array<string>
      */
-    public function handleLogin($password, $userData, $ip)
+    public function handleLogin($password, $userData, $ip, $user)
     {
         $data = [
             'email' => $userData->email,
             'password' => $password,
         ];
 
-        $now = Carbon::now();
+        // activity()->log('Look mum, I logged something');
         $failedLogin = $this->failedLoginRepository->getById();
+        $now = Carbon::now();
 
         if ($failedLogin) {
             if ($failedLogin->attempts >= 2) {
-                if ($failedLogin->time) {
+
+                if(!$failedLogin->time){
+                    $failedLogin->time = Carbon::now()->addMinutes(1);
+                }else{
+
+                    // if(!$now->isAfter($failedLogin->time)){
+                    //     $this->sendError("IP address has been banned for 1 minutes");
+                    // }
 
                     $currentTime = strtotime($now);
                     $regulateTime = strtotime($failedLogin->time);
                     $differenceTime = $currentTime - $regulateTime;
 
                     if ($differenceTime <= 0) {
-                        $this->sendError("Your IP address has been banned for 1 minutes");
-                    }else{
-                        $this->failedLoginRepository->update($ip);
+                        $this->sendError("IP address has been banned for 1 minutes");
                     }
-                    
-                }else{
-                    $failedLogin->time = Carbon::now()->addMinutes(1);
+
+                    $this->failedLoginRepository->update($ip);
                 }
-                // $this->sendError("Too many login attempts from this IP address");
+
                 $failedLogin->save();
             }
 
-            // $this->failedLoginRepository->truncate();
         }
 
         if (!Auth::attempt($data)) {
@@ -239,15 +246,14 @@ class AuthService extends BaseService implements AuthServiceInterface
             $this->sendError("Unauthorize !");
         }
 
-        if ($userData->status == 0) {
+        if (!$userData->status) {
             $this->sendError("Please activate your account ! Contact admin !");
         }
 
-        $user = Auth::user();
-        $success = [
+        $result = [
             'token' => $user->createToken('token')->plainTextToken,
         ];
-        return $success;
+        return $result;
     }
 
     /**

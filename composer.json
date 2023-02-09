@@ -15,6 +15,7 @@
         "laravel/tinker": "^2.5",
         "laravel/ui": "*",
         "laravolt/avatar": "^4.1",
+        "spatie/laravel-activitylog": "^4.7",
         "unisharp/laravel-filemanager": "^2.5",
         "yaza/laravel-repository-service": "*"
     },
@@ -27,6 +28,9 @@
         "phpunit/phpunit": "^9.5.10"
     },
     "autoload": {
+        "files": [
+            "App/Helpers/Functions.php"
+        ],
         "psr-4": {
             "App\\": "app/",
             "Database\\Factories\\": "database/factories/",

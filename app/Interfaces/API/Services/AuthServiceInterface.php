@@ -12,7 +12,7 @@ interface AuthServiceInterface
 
     public function verifyEmail($email);
 
-    public function handleLogin($password, $userData, $ip);
+    public function handleLogin($password, $userData, $ip, $user);
 
     public function handleChangePassword($passwordOld, $passwordNew, $password, $uuid);
 

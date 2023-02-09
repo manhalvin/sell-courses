@@ -10,7 +10,6 @@ class OrderService extends BaseService
     protected $orderDetailRepository;
     protected $orderRepository;
     protected $couponRepository;
-    protected $table = 'order_details';
 
     public function __construct()
     {

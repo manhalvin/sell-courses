@@ -28,9 +28,10 @@ class ClientOrderController extends BaseController
         $name = $request->input('name');
         $couponCode = $request->input('coupon');
         $paymentMethod = $request->input('payment_method');
+        $userId = Auth::user()->id;
 
         try {
-            $result = $this->orderService->handleCheckout($email, $name, $couponCode, $paymentMethod);
+            $result = $this->orderService->handleCheckout($email, $name, $couponCode, $paymentMethod, $userId);
             return $this->sendResponse($result, 'Success ! Checkout success');
         } catch (\Exception$e) {
             return $this->sendError($e->getMessage(), null);
@@ -45,8 +46,8 @@ class ClientOrderController extends BaseController
     {
         $orderId = $request->input('order_id');
         try {
-            $this->orderService->handlePayment($orderId);
-            return $this->sendResponse([], 'Success ! Payment success');
+            $result = $this->orderService->handlePayment($orderId);
+            return $this->sendResponse($result, 'Payment success !');
         } catch (\Exception$e) {
             return $this->sendError($e->getMessage(), null);
         }

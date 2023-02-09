@@ -15,12 +15,12 @@ class FailedLoginRepository
 
     public function getById()
     {
-        return $this->model->where('ip', request()->ip())->first();
+        return $this->model->lockForUpdate()->where('ip', request()->ip())->first();
     }
 
     public function saveFailedLogin($ip)
     {
-        $result = $this->model->where('ip', $ip)->first();
+        $result = $this->model->lockForUpdate()->where('ip', $ip)->first();
 
         if (!$result) {
             $this->model->ip = $ip;

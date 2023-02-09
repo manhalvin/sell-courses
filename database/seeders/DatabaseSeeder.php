@@ -14,7 +14,7 @@ class DatabaseSeeder extends Seeder
      */
     public function run()
     {
-        // User::factory(600)->create();
+
         $this->call([
             RoleSeeder::class,
             UserSeeder::class,
@@ -24,5 +24,10 @@ class DatabaseSeeder extends Seeder
             OrderDetailSeeder::class,
             VideoSeeder::class
         ]);
+
+        // User::factory(100000)->create();
+        // $this->call([
+        //     UserSeeder::class,
+        // ]);
     }
 }

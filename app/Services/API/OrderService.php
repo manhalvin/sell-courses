@@ -17,7 +17,6 @@ class OrderService extends BaseService
     protected $cartRepository;
     protected $courseRepository;
     protected $orderDetailRepository;
-    protected $table = 'orders';
     protected $paymentRepository;
 
     public function __construct()
@@ -39,10 +38,9 @@ class OrderService extends BaseService
      * @throws \Exception
      * @return mixed
      */
-    public function handleCheckout($email, $name, $couponCode, $paymentMethod)
+    public function handleCheckout($email, $name, $couponCode, $paymentMethod, $userId)
     {
-        $userId = Auth::user()->id;
-        $infoCart = $this->infoCart();
+        $infoCart = $this->infoCart($userId);
         if ($couponCode) {
 
             $coupon = $this->couponRepository->getCouponList($couponCode);
@@ -54,7 +52,7 @@ class OrderService extends BaseService
                 throw new \Exception('The discount code is out of stock !', 1);
             }
             $coupon->quantify -= 1;
-            $coupon->coupon_user = $coupon->code . ',' . Auth::id();
+            $coupon->coupon_user = $coupon->code . ',' . $userId;
             $coupon->save();
 
             $total = $infoCart['total'];
@@ -78,7 +76,6 @@ class OrderService extends BaseService
         ];
 
         $orderId = $this->orderRepository->createOrder($data);
-        // $order = $this->orderRepository->getById($orderId);
         if (!$orderId) {
             throw new \Exception('Save order fail !', 1);
         }
@@ -100,76 +97,8 @@ class OrderService extends BaseService
     public function handlePayment($orderId)
     {
         $order = $this->orderRepository->getById($orderId);
-        $vnp_Url = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html";
-        $vnp_Returnurl = "http://localhost/Laravel/orders/completecheckout/";
-        $vnp_TmnCode = "UD2KZW06"; //Mã website tại VNPAY
-        $vnp_HashSecret = "HUQJSLMKGFXYCNYOWXBBEYDADEGNMOBB"; //Chuỗi bí mật
-
-        $vnp_TxnRef = $order->order_code; //Mã đơn hàng.
-        $vnp_OrderInfo = $order->id;
-        $vnp_OrderType = 'billpayment';
-        $vnp_Amount = (($order->final_amount) * 100);
-        $vnp_Locale = 'vn';
-        $vnp_BankCode = 'NCB';
-        $vnp_Bill_Email = $order->email;
-        $fullName = trim($order->name);
-        if (isset($fullName) && trim($fullName) != '') {
-            $name = explode(' ', $fullName);
-            $vnp_Bill_FirstName = array_shift($name);
-            $vnp_Bill_LastName = array_pop($name);
-        }
-        $inputData = array(
-            "vnp_Version" => "2.1.0",
-            "vnp_TmnCode" => $vnp_TmnCode,
-            "vnp_Amount" => $vnp_Amount,
-            "vnp_Command" => "pay",
-            "vnp_CreateDate" => date('YmdHis'),
-            "vnp_CurrCode" => "VND",
-            "vnp_Locale" => $vnp_Locale,
-            "vnp_OrderInfo" => $vnp_OrderInfo,
-            "vnp_OrderType" => $vnp_OrderType,
-            "vnp_ReturnUrl" => $vnp_Returnurl,
-            "vnp_TxnRef" => $vnp_TxnRef,
-            "vnp_Bill_FirstName" => $vnp_Bill_FirstName,
-            "vnp_Bill_LastName" => $vnp_Bill_LastName,
-            "vnp_Bill_Email" => $vnp_Bill_Email,
-        );
-
-        if (isset($vnp_BankCode) && $vnp_BankCode != "") {
-            $inputData['vnp_BankCode'] = $vnp_BankCode;
-        }
-        if (isset($vnp_Bill_State) && $vnp_Bill_State != "") {
-            $inputData['vnp_Bill_State'] = $vnp_Bill_State;
-        }
-
-        ksort($inputData);
-        $query = "";
-        $i = 0;
-        $hashdata = "";
-        foreach ($inputData as $key => $value) {
-            if ($i == 1) {
-                $hashdata .= '&' . urlencode($key) . "=" . urlencode($value);
-            } else {
-                $hashdata .= urlencode($key) . "=" . urlencode($value);
-                $i = 1;
-            }
-            $query .= urlencode($key) . "=" . urlencode($value) . '&';
-        }
-
-        $vnp_Url = $vnp_Url . "?" . $query;
-        if (isset($vnp_HashSecret)) {
-            $vnpSecureHash = hash_hmac('sha512', $hashdata, $vnp_HashSecret); //
-            $vnp_Url .= 'vnp_SecureHash=' . $vnpSecureHash;
-        }
-        $returnData = array('code' => '00'
-            , 'message' => 'success'
-            , 'data' => $vnp_Url);
-        if (isset($_POST['redirect'])) {
-            header('Location: ' . $vnp_Url);
-            die();
-        } else {
-            echo json_encode($returnData);
-        }
+        $result = VnPayment($order);
+        return $result;
     }
 
     /**
@@ -206,9 +135,8 @@ class OrderService extends BaseService
      * nhưng chưa thanh toán
      * @return array
      */
-    public function infoCart()
+    public function infoCart($userId)
     {
-        $userId = Auth::user()->id;
         $cart = $this->cartRepository->getCartByUserId($userId);
         if ($cart) {
             $numOrder = 0;
@@ -254,8 +182,9 @@ class OrderService extends BaseService
         if (!$item) {
             throw new \Exception('Error ! Fetch Data No Success', 1);
         }
-        $model = $this->orderDetailRepository->getById($id);
-        return $model;
+
+        $result = $this->orderDetailRepository->getById($id);
+        return $result;
     }
 
     /**
@@ -272,21 +201,23 @@ class OrderService extends BaseService
     {
         // Lọc trạng thái đơn hàng
         $filters = [];
+        $table = 'orders';
+
         if (!empty($status)) {
             if ($status == 'ordered') {
-                $filters[] = [$this->table . '.status', '=', 'ordered'];
+                $filters[] = [$table . '.status', '=', 'ordered'];
             } elseif ($status == 'processing') {
-                $filters[] = [$this->table . '.status', '=', 'processing'];
+                $filters[] = [$table . '.status', '=', 'processing'];
             } elseif ($status == 'delivery in progress') {
-                $filters[] = [$this->table . '.status', '=', 'delivery in progress'];
+                $filters[] = [$table . '.status', '=', 'delivery in progress'];
             } elseif ($status == 'delivered') {
-                $filters[] = [$this->table . '.status', '=', 'delivered'];
+                $filters[] = [$table . '.status', '=', 'delivered'];
             } elseif ($status == 'cancelled') {
-                $filters[] = [$this->table . '.status', '=', 'cancelled'];
+                $filters[] = [$table . '.status', '=', 'cancelled'];
             } elseif ($status == 'completed') {
-                $filters[] = [$this->table . '.status', '=', 'completed'];
+                $filters[] = [$table . '.status', '=', 'completed'];
             } elseif ($status == 'wait for pay') {
-                $filters[] = [$this->table . '.status', '=', 'wait for pay'];
+                $filters[] = [$table . '.status', '=', 'wait for pay'];
             }
         }
 

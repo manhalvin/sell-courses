@@ -98,6 +98,7 @@ class AuthController extends BaseController
         $email = $request->input('email');
         $password = $request->input('password');
         $ip = $request->ip();
+        $user = Auth::user();
 
 
         try {
@@ -107,7 +108,7 @@ class AuthController extends BaseController
         }
 
         try {
-            $result = $this->authService->handleLogin($password, $userData, $ip);
+            $result = $this->authService->handleLogin($password, $userData, $ip, $user);
             return $this->sendResponse($result, 'Login successful !');
         } catch (\Exception$e) {
             return $this->sendError($e->getMessage(), null);

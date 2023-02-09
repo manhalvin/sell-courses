@@ -25,7 +25,7 @@ class UserSeeder extends Seeder
             [
                 'name' => 'Quốc Mạnh',
                 'username' => 'quocmanh',
-                'email' => 'manhquoc1998s@gmial.com',
+                'email' => 'manhquoc1998s@gmail.com',
                 'password' => bcrypt('123456789'),
                 'mobile_no' => '0961154483',
                 'thumbnail' => $avatar->create('Quốc Mạnh')->toBase64(),
@@ -42,7 +42,7 @@ class UserSeeder extends Seeder
                 'password' => bcrypt('123456789'),
                 'mobile_no' => '0914018077',
                 'thumbnail' => $avatar->create('Quốc Việt')->toBase64(),
-                'status' => Status::Active,
+                'status' => Status::Inactive,
                 'created_at' => now(),
                 'updated_at' => now(),
                 'email_verified_at' => now(),
@@ -50,18 +50,17 @@ class UserSeeder extends Seeder
             ],
         ]);
 
-        User::factory(2000)->create();
+        // User::factory(100000)->create();
 
         // $faker = Factory::create();
-        // $data = array();
-        // for ($i = 1; $i <= 600; $i++) {
+        // for ($i = 1; $i <= 500000; $i++) {
         //     $user = new User();
         //     $user->name = $faker->name;
         //     $user->username = $faker->userName();
         //     $user->email = $faker->email;
-        //     $user->password = Hash::make($faker->password);
+        //     $user->password = $faker->password;
         //     $user->mobile_no = $faker->phoneNumber;
-        //     $user->thumbnail = $avatar->create($faker->name)->toBase64();
+        //     $user->thumbnail = 1;
         //     $user->status = Status::Active;
         //     $user->created_at = date("m/d/Y");
         //     $user->updated_at = date("m/d/Y");

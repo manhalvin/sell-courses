@@ -102,9 +102,10 @@ class ClientCourseController extends BaseController
     public function unenrolled(Request $request)
     {
         $courseId = $request->input('course_id');
+        $userId = Auth::user()->id;
 
         try {
-            $this->courseService->handleUnenrolled($courseId);
+            $this->courseService->handleUnenrolled($courseId, $userId);
             return $this->sendResponse([], 'Success ! Successfully canceled course registration !');
         } catch (\Exception$e) {
             return $this->sendError($e->getMessage(), null);

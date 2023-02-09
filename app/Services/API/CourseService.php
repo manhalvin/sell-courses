@@ -1,6 +1,7 @@
 <?php
 namespace App\Services\API;
 
+use App\Enums\Action;
 use App\Http\Resources\API\CourseResource;
 use App\Repositories\Eloquent\API\CartRepository;
 use App\Repositories\Eloquent\API\CourseRepository;
@@ -12,7 +13,6 @@ use Laravolt\Avatar\Avatar;
 class CourseService extends BaseService
 {
     protected $courseRepository;
-    protected $table = 'courses';
     protected $orderRepository;
     protected $orderDetailRepository;
     protected $cartRepository;
@@ -67,27 +67,25 @@ class CourseService extends BaseService
      */
     public function getAll($status, $search, $sortBy, $sortType)
     {
+        $table = 'courses';
         // Lọc trạng thái ẩn hiên
         $filters = [];
         if (!empty($status)) {
             if ($status == 'active') {
-                $filters[] = [$this->table . '.status', '=', 1];
-            } elseif ($status == 'unactive') {
-                $filters[] = [$this->table . '.status', '=', 0];
+                $filters[] = [$table . '.status', '=', 1];
+            } elseif ($status == 'Inactive') {
+                $filters[] = [$table . '.status', '=', 0];
             }
         }
 
         // Sắp xếp các cột theo thứ tự desc,asc
         $allowSort = ['asc', 'desc'];
         if (!empty($sortType) && in_array($sortType, $allowSort)) {
-            if ($sortType == 'desc') {
-                $sortType = 'asc';
-            } else {
-                $sortType = 'desc';
-            }
+            $sortType == 'desc' ? 'asc' : 'desc';
         } else {
             $sortType = 'asc';
         }
+
         $sortArr = [
             'sortBy' => $sortBy,
             'sortType' => $sortType,
@@ -97,6 +95,7 @@ class CourseService extends BaseService
         if (!$result->count()) {
             throw new \Exception('Error ! Fetch Data No Success', 1);
         }
+
         return CourseResource::collection($result);
     }
 
@@ -195,7 +194,7 @@ class CourseService extends BaseService
 
         $result = $this->courseRepository->updateCourse($data, $id);
         if (!$result) {
-            throw new \Exception('Error ! Update Data No Success', 1);
+            throw new \Exception('Update Data No Success', 1);
         }
 
         return $result;
@@ -211,12 +210,12 @@ class CourseService extends BaseService
     {
         $item = $this->courseRepository->checkRecordExist($id);
         if (!$item) {
-            throw new \Exception('Error ! Not find record', 1);
+            throw new \Exception('Not find record', 1);
         }
 
         $result = $this->courseRepository->deleteData($id);
         if (!$result) {
-            throw new \Exception('Error ! Delete Data No Success', 1);
+            throw new \Exception('Delete Data No Success', 1);
         }
 
         return $result;
@@ -228,7 +227,7 @@ class CourseService extends BaseService
      * @param mixed $listCheck
      * @param mixed $action
      * @throws \Exception
-     * @return string
+     * @return array
      */
     public function handleDataAction($listCheck, $action)
     {
@@ -240,37 +239,45 @@ class CourseService extends BaseService
             throw new \Exception('Please select the action to perform the recording', 1);
         }
 
-        $newListCheck = array();
-        foreach ($listCheck as $value) {
-            $newListCheck[] =  explode(",", $value);
+        switch ($action) {
+
+            case Action::Delete:
+                $item = $this->courseRepository->checkManyRecordExist($listCheck);
+                if (!$item) {
+                    throw new \Exception('Record no exist', 1);
+                }
+
+                $this->courseRepository->destroyData($listCheck);
+
+                return [
+                    'success' => "You have successfully deleted the temporary record",
+                ];
+
+            case Action::Active:
+                $this->courseRepository->restoreData($listCheck);
+                return [
+                    'success' => "You have successfully active the record",
+                ];
+
+            case Action::ForceDelete:
+                $this->courseRepository->forceDelete($listCheck);
+                return [
+                    'success' => "You have successfully restored the record",
+                ];
+
+            case Action::Public:
+                $this->courseRepository->approveRecord($listCheck);
+                return [
+                    'success' => "You have successfully made the record public",
+                ];
+
+            default:
+                $this->courseRepository->incognitoRecord($listCheck);
+                return [
+                    'success' => "You have successfully converted the record to pending approval",
+                ];
         }
 
-        if ($action == 'delete') {
-
-            $item = $this->courseRepository->checkManyRecordExist($newListCheck[0]);
-            if (!$item) {
-                throw new \Exception('Record no exist', 1);
-            }
-
-            $this->courseRepository->destroyData($listCheck);
-            return 'You have successfully deleted the temporary record';
-
-        } elseif ($action == 'active') {
-            $this->courseRepository->restoreData($listCheck);
-            return 'You have successfully restored the record';
-
-        } elseif ($action == 'forceDelete') {
-            $this->courseRepository->forceDelete($listCheck);
-            return 'You have successfully restored the record';
-
-        } elseif ($action == 'public') {
-            $this->courseRepository->approveRecord($listCheck);
-            return 'You have successfully made the record public';
-
-        } else {
-            $this->courseRepository->incognitoRecord($listCheck);
-            return 'You have successfully converted the record to pending approval';
-        }
     }
 
     /**
@@ -283,10 +290,9 @@ class CourseService extends BaseService
     {
         $checkCourseExist = $this->courseRepository->checkRecordExist($courseId);
         if (!$checkCourseExist) {
-            throw new \Exception('Error ! No find course !', 1);
+            throw new \Exception('No find course !', 1);
         }
 
-        $qty = 1;
         $course = $this->courseRepository->getById($courseId);
         $sessionId = substr(md5(microtime()), rand(0, 26), 5);
 
@@ -296,7 +302,7 @@ class CourseService extends BaseService
                 'session_id' => $sessionId,
                 'course_id' => $courseId,
                 'user_id' => $userId,
-                'qty' => $qty,
+                'qty' => 1,
                 'title' => $course->title,
                 'price' => $course->price,
                 'thumbnail' => $course->thumbnail,
@@ -313,16 +319,14 @@ class CourseService extends BaseService
      * @throws \Exception
      * @return mixed
      */
-    public function handleUnenrolled($id)
+    public function handleUnenrolled($courseId, $userId)
     {
-        $checkCourseExist = $this->courseRepository->checkRecordExist($id);
+        $checkCourseExist = $this->courseRepository->checkRecordExist($courseId);
         if (!$checkCourseExist) {
-            throw new \Exception('Error ! No find course !', 1);
+            throw new \Exception('No find course !', 1);
         }
 
-        $userId = Auth::user()->id;
-
-        $cart = $this->cartRepository->deleteCourse($id, $userId);
+        $cart = $this->cartRepository->deleteCourse($courseId, $userId);
         if (!$cart) {
             throw new \Exception('Failed to delete the course from the shopping cart', 1);
         }
@@ -338,7 +342,7 @@ class CourseService extends BaseService
      */
     public function infoCart()
     {
-        $userId = Auth::user()->id;
+        $userId = Auth::id();
         $cart = $this->cartRepository->getCartByUserId($userId);
 
         if ($cart) {
@@ -360,42 +364,38 @@ class CourseService extends BaseService
     }
 
     /**
-     * Xử lý chức năng đăng ký học online nhiều khóa cùng lúc
+     *  Xử lý chức năng đăng ký học online nhiều khóa cùng lúc
      * @param array $courseId
-     * @return void
+     * @param int $userId
+     * @throws \Exception
+     * @return mixed
      */
     public function handleRegister(array $courseId, int $userId)
     {
-        $qty = 1;
         $carts = array();
-        $newCourseId = array();
-        $listCourseId = array();
+        $checkCourseId = array();
         $sessionId = substr(md5(microtime()), rand(0, 26), 5);
 
         $courseExist = $this->courseRepository->checkManyRecordExist($courseId);
         if (!$courseExist) {
-            throw new \Exception('Error ! No find course !', 1);
+            throw new \Exception('No find course !', 1);
         }
 
-        foreach ($courseId as $value) {
-            $listCourseId[] = explode(",", $value);
-        }
-
-        $courses = $this->courseRepository->getMultipleCourses($listCourseId[0]);
+        $courses = $this->courseRepository->getMultipleCourses($courseId);
         foreach ($courses as $course) {
             $carts[] = $this->cartRepository->getCart($course->id, $userId);
         };
 
         // kiểm tra xem người dùng đã đăng ký cho bất kỳ khóa học nào chưa !
         foreach ($carts as $cart) {
-            if(!empty($cart->course_id)){
-                $newCourseId[] = $cart->course_id;
+            if (!empty($cart->course_id)) {
+                $checkCourseId[] = $cart->course_id;
             }
         }
 
-        $newCourseId = implode(",", $newCourseId);
-        if ($newCourseId) {
-            throw new \Exception("You have already registered for this course: $newCourseId", 1);
+        $checkCourseId = implode(",", $checkCourseId);
+        if ($checkCourseId) {
+            throw new \Exception("You have already registered for this course: $checkCourseId", 1);
         }
 
         // Tạo đăng ký học online mới
@@ -404,13 +404,15 @@ class CourseService extends BaseService
                 'session_id' => $sessionId,
                 'course_id' => $course->id,
                 'user_id' => $userId,
-                'qty' => $qty,
+                'qty' => 1,
                 'title' => $course->title,
                 'price' => $course->price,
                 'thumbnail' => $course->thumbnail,
             ];
-            $this->cartRepository->createCart($data);
+            $result = $this->cartRepository->createCart($data);
         }
+
+        return $result;
     }
 
     /**
@@ -422,7 +424,7 @@ class CourseService extends BaseService
     {
         $result = $this->cartRepository->truncate();
         if (!$result) {
-            throw new \Exception('Error ! Delete all record no success', 1);
+            throw new \Exception('Delete all record fail', 1);
         }
 
         return $result;

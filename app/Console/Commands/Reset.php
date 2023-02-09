@@ -37,14 +37,14 @@ class Reset extends Command
      */
     public function handle()
     {
-        $this->call('migrate:refresh');
-        $this->call('db:seed');
+        // $this->call('migrate:refresh');
         $this->call('cache:clear');
         $this->call('config:clear');
         $this->call('route:clear');
         $this->call('view:clear');
         $this->call('queue:clear');
-        $this->call('key:generate');
+        $this->call('db:seed');
+        // $this->call('key:generate');
         $this->info('Reset success');
     }
 }

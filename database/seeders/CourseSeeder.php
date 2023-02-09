@@ -15,7 +15,6 @@ class CourseSeeder extends Seeder
      */
     public function run()
     {
-        DB::statement('SET FOREIGN_KEY_CHECKS=0');
         $avatar = new Avatar();
         DB::table('courses')->insert([
             [
@@ -41,7 +40,5 @@ class CourseSeeder extends Seeder
                 'updated_at' => now(),
             ],
         ]);
-
-        DB::statement('SET FOREIGN_KEY_CHECKS=1');
     }
 }
